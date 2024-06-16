@@ -1,0 +1,23 @@
+.red {
+    background-color: #ff7c00;
+    color: #232323;
+}
+
+.black {
+    background-color: #343434;
+    color: rgba(220, 220, 220, 1);
+}
+
+.green {
+    background-color: #056A00;
+    color: rgba(220, 220, 220, 1);
+}
+
+.neutral {
+    background-color: burlywood;
+    color: #232323;
+}
+
+.blue {
+    background-color: lightblue;
+}
