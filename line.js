@@ -57,6 +57,16 @@ class Bets {
         console.log('start');
     }
 
+    clear() {
+        this.orders = new Map();
+        this.bets = new Map();
+        this.rounds = 0;
+        this.began = false;
+        this.attempts = 0;
+        this.lastResults = [];
+        console.log('clear');
+    }
+
     addPosition(n) {
         const offset = getLastOffset();
         this.orders.set(n, offset);
@@ -132,6 +142,8 @@ class Bets {
 function line() {
     const lineStructure = new Line('.line');
 
+    let lastElement;
+
     addEventListener('add_number', () => {
         const [n] = currentGame.numbers;
         const numberInfo = NUMBER_INFO.get(n);
@@ -141,11 +153,26 @@ function line() {
         const template = lineStructure.getFirstItemElement(items);
 
         const element = lineStructure.createItem(template, numberInfo);
+        lastElement = element;
 
         if (currentGame.numbers.length > 1) {
             lineStructure.addItem(items, element);
         } else {
             lineStructure.updateItems(items, element);
+        }
+    });
+
+    addEventListener('delete_number', () => {
+        if (lastElement) {
+            if (currentGame.numbers.length > 0) {
+                const group = lineStructure.getFirstItemsGroupElement();
+                const items = lineStructure.getItemsElement(group);
+
+                lastElement = lineStructure.getFirstItemElement(items);
+                items.removeChild(lastElement);
+            } else {
+                lastElement = null;
+            }
         }
     });
 }
