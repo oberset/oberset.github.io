@@ -3,7 +3,7 @@ function table() {
     const list = container.querySelectorAll('span, .zero');
 
     for (let element of list) {
-        element..addEventListener('touchstart', function (e) {
+        element.addEventListener('touchstart', function (e) {
             if (e.touches.length === 1) {
                 if (!expired) {
                     expired = e.timeStamp + 400
