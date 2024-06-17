@@ -22,6 +22,11 @@ function addNumber(number) {
     emit('add_number');
 }
 
+function deleteLastNumber() {
+    currentGame.numbers.shift();
+    emit('delete_number');
+}
+
 function addNumbers(list) {
     for (let item of list) {
         addNumber(item);
