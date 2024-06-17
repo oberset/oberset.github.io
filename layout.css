@@ -1,7 +1,7 @@
 .layout {
     display: flex;
     padding: 24px;
-    width: 100%;
+    width: 320px;
     height: 100%;
     position: absolute;
     flex-wrap: wrap;
