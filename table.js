@@ -3,11 +3,11 @@ function table() {
     const list = container.querySelectorAll('span, .zero');
 
     for (let element of list) {
-        element.addEventListener('click', function(e) {
+        element.addEventListener('dblclick', (e) => {
             const n = parseInt(e.target.textContent);
             if (!isNaN(n)) {
                 addNumber(n);
             }
-        })
+        });
     }
 }
