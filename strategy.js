@@ -1,32 +1,48 @@
-function lineStrategy() {
+/*function lineStrategy() {
     const lineStructure = new Line('.strategy-line');
 
     addEventListener('add_number', () => {
         calcLineStrategyScore(lineStructure, 'red', currentGame.numbers.length <= 1);
     });
-}
+}*/
 
-function parityStrategy() {
+/*function parityStrategy() {
     const lineStructure = new Line('.strategy-parity');
 
     addEventListener('add_number', () => {
         calcLineStrategyScore(lineStructure, 'odd', currentGame.numbers.length <= 1);
     });
-}
+}*/
 
-function bigNumbersStrategy() {
+/*function bigNumbersStrategy() {
     const lineStructure = new Line('.strategy-big-numbers');
 
     addEventListener('add_number', () => {
         calcLineStrategyScore(lineStructure, 'big', currentGame.numbers.length <= 1);
     });
-}
+}*/
 
 function repeatsStrategy() {
     const lineStructure = new Line('.strategy-repeats');
 
     addEventListener('add_number', () => {
         calsRepeats(lineStructure, currentGame.numbers.length <= 1);
+    });
+
+    addEventListener('delete_number', () => {
+        const group = lineStructure.getFirstItemsGroupElement();
+        const items = lineStructure.getItemsElement(group);
+        const element = lineStructure.getFirstItemElement(items);
+
+        if (currentGame.numbers.length > 1) {
+            items.removeChild(element);
+        } else {
+            const empty = createItem(element, '');
+            element.classList.add('neutral');
+            element.style.width = `0px`;
+
+            lineStructure.updateItems(items, empty);
+        }
     });
 }
 
@@ -49,6 +65,15 @@ function lastNumbersStrategy() {
     button.addEventListener('click', buttonEventListener);
 
     addEventListener('add_number', () => {
+        calcLastNumbers(lineStructure, service);
+        nextSpin(gameRoundsStructure, service.rounds);
+        calcNumbersPosition(numbersPositionStructure, service.orders.entries());
+        calcWinAttempts(winAttemptsStructure, service);
+    });
+
+    addEventListener('delete_number', () => {
+        service.clear();
+
         calcLastNumbers(lineStructure, service);
         nextSpin(gameRoundsStructure, service.rounds);
         calcNumbersPosition(numbersPositionStructure, service.orders.entries());
