@@ -109,12 +109,8 @@ class Bets {
                 step += this.step;
             }
 
-            if (this.attempts > 12) {
-                step += this.step;
-            }
-
-            if (this.attempts > 18) {
-                step -= this.step * 3;
+            if (this.attempts > 15) {
+                step -= this.step * 2;
             }
 
             this.maxBets = this.defaultBets + step;
