@@ -101,6 +101,7 @@ class Bets {
 
             if (this.attempts > 15) {
                 this.maxBets = this.defaultBets;
+                this.bets.clear();
             } else if (this.attempts > 9) {
                 this.maxBets = this.defaultBets + (this.step * 2);
             } else if (this.attempts > 6) {
