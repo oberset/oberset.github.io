@@ -41,7 +41,7 @@ class Line {
 }
 
 class Bets {
-    constructor(maxBets = 6, maxAttempts = 18) {
+    constructor(maxBets = 4, maxAttempts = 18, step = 2) {
         this.orders = new Map();
         this.bets = new Map();
         this.maxBets = maxBets;
@@ -50,6 +50,8 @@ class Bets {
         this.began = false;
         this.attempts = 0;
         this.lastResults = [];
+        this.step = step;
+        this.defaultBets = maxBets;
     }
 
     start() {
@@ -93,7 +95,29 @@ class Bets {
             this.bets.delete(n);
             this.lastResults.push(this.attempts);
             this.attempts = 0;
+            this.maxBets = this.defaultBets;
             ignoreNumbers.push(n);
+        } else {
+
+            let step = 0;
+
+            if (this.attempts > 6) {
+                step += this.step;
+            }
+
+            if (this.attempts > 9) {
+                step += this.step;
+            }
+
+            if (this.attempts > 12) {
+                step += this.step;
+            }
+
+            if (this.attempts > 18) {
+                step -= this.step * 3;
+            }
+
+            this.maxBets = this.defaultBets + step;
         }
 
         if (this.bets.size > 0) {
