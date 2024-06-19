@@ -99,21 +99,14 @@ class Bets {
             ignoreNumbers.push(n);
         } else {
 
-            let step = 0;
-
-            if (this.attempts > 6) {
-                step += this.step;
-            }
-
-            if (this.attempts > 9) {
-                step += this.step;
-            }
-
             if (this.attempts > 15) {
-                step -= this.step * 2;
+                this.maxBets = this.defaultBets;
+            } else if (this.attempts > 9) {
+                this.maxBets = this.defaultBets + (this.step * 2);
+            } else if (this.attempts > 6) {
+                this.maxBets = this.defaultBets +this.step;
             }
 
-            this.maxBets = this.defaultBets + step;
         }
 
         if (this.bets.size > 0) {
