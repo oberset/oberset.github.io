@@ -89,6 +89,10 @@ class Bets {
     next(n) {
         this.addPosition(n);
 
+        if (!this.began) {
+            return [];
+        }
+
         const ignoreNumbers = [];
 
         if (this.bets.has(n)) {
