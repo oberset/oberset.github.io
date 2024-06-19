@@ -75,6 +75,7 @@ class Bets {
 
         if (this.began) {
             this.rounds += 1;
+            this.attempts += 1;
         }
 
         const [hotAvg] = getAvgHotColdRepeats(this.orders);
@@ -82,8 +83,6 @@ class Bets {
         if (hotAvg > 0) {
             this.maxAttempts = hotAvg;
         }
-
-        this.attempts += 1;
     }
 
     next(n) {
