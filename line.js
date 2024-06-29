@@ -105,13 +105,13 @@ class Bets {
         } else {
             const maxRounds = this.maxAttempts % 2 ? this.maxAttempts + 1 : this.maxAttempts;
             
-            if (this.attempts % maxRounds === 0) {
+            if (this.attempts - 1 % maxRounds === 0) {
                 this.maxBets = this.defaultBets;
                 console.log('== Round failed ==');
                 console.log(this.bets.entries());
                 console.log('_________________');
                 this.bets.clear();
-            } else if (this.attempts % (maxRounds / 2) === 0) {
+            } else if (this.attempts - 1 % (maxRounds / 2) === 0) {
                 this.maxBets = Math.round(this.defaultBets * 1.5);
             }
 
