@@ -56,8 +56,8 @@ class Bets {
 
     start() {
         this.began = true;
-        this.rounds = 1;
-        this.attempts = 1;
+        this.rounds = 0;
+        this.attempts = 0;
         console.log('start');
     }
 
