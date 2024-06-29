@@ -97,7 +97,7 @@ class Bets {
         const ignoreNumbers = [];
 
         if (this.bets.has(n)) {
-            this.bets.();
+            this.bets.clear();
             this.lastResults.push(this.attempts);
             this.attempts = 1;
             this.maxBets = this.defaultBets;
