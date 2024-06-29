@@ -104,17 +104,19 @@ class Bets {
             ignoreNumbers.push(n);
         } else {
             const maxRounds = this.maxAttempts % 2 ? this.maxAttempts + 1 : this.maxAttempts;
-            
-            if (this.attempts - 1 % maxRounds === 0) {
-                this.maxBets = this.defaultBets;
-                console.log('== Round failed ==');
-                console.log(this.bets.entries());
-                console.log('_________________');
-                this.bets.clear();
-            } else if (this.attempts - 1 % (maxRounds / 2) === 0) {
-                this.maxBets = Math.round(this.defaultBets * 1.5);
-            }
+            console.log('Rounds', maxRounds);
 
+            if (this.attempts > 1) {
+                if (this.attempts - 1 % maxRounds === 0) {
+                    this.maxBets = this.defaultBets;
+                    console.log('== Round failed ==');
+                    console.log(this.bets.entries());
+                    console.log('_________________');
+                    this.bets.clear();
+                } else if (this.attempts - 1 % (maxRounds / 2) === 0) {
+                    this.maxBets = Math.round(this.defaultBets * 1.5);
+                }
+            }
         }
 
         if (this.bets.size > 0) {
