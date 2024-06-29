@@ -61,6 +61,8 @@ function lastNumbersStrategy() {
         button.classList.add('neutral');
         button.style.cursor = 'default';
         button.removeEventListener('click', buttonEventListener);
+        nextSpin(gameRoundsStructure, service.rounds);
+        calcWinAttempts(winAttemptsStructure, service);
     };
     button.addEventListener('click', buttonEventListener);
 
