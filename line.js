@@ -56,15 +56,17 @@ class Bets {
 
     start() {
         this.began = true;
+        this.rounds = 1;
+        this.attempts = 1;
         console.log('start');
     }
 
     clear() {
         this.orders = new Map();
         this.bets = new Map();
-        this.rounds = 0;
+        this.rounds = 1;
         this.began = false;
-        this.attempts = 0;
+        this.attempts = 1;
         this.lastResults = [];
         console.log('clear');
     }
@@ -95,20 +97,18 @@ class Bets {
         const ignoreNumbers = [];
 
         if (this.bets.has(n)) {
-            this.bets.clear();
+            this.bets.();
             this.lastResults.push(this.attempts);
-            this.attempts = 0;
+            this.attempts = 1;
             this.maxBets = this.defaultBets;
             ignoreNumbers.push(n);
         } else {
 
-            if (this.attempts > 15) {
+            if (this.attempts > 12) {
                 this.maxBets = this.defaultBets;
                 this.bets.clear();
-            } else if (this.attempts > 9) {
-                this.maxBets = this.defaultBets + (this.step * 2);
             } else if (this.attempts > 6) {
-                this.maxBets = this.defaultBets +this.step;
+                this.maxBets = Math.round(this.defaultBets * 1.5);
             }
 
         }
@@ -140,6 +140,11 @@ class Bets {
         let max = 0;
 
         const list = Array.from(this.orders.entries()).filter(([n]) => {
+            const offset = getLastOffset(true, n);
+            const maxOffset = (this.maxAttempts * 2) + 1;
+            if (offset > maxOffset) {
+                return false;
+            }
             return !this.bets.has(n) && !ignoreNumbers.includes(n);
         });
 
@@ -194,8 +199,10 @@ function line() {
     });
 }
 
-function getLastOffset(calcRepeatsOnly = true) {
-    const [current, ...list] = currentGame.numbers;
+function getLastOffset(calcRepeatsOnly = true, forNumber = undefined) {
+    const [last, ...prev] = currentGame.numbers;
+    const current = forNumber || last;
+    const list = forNumber ? currentGame.numbers : prev;
 
     let value;
 
