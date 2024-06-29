@@ -103,11 +103,15 @@ class Bets {
             this.maxBets = this.defaultBets;
             ignoreNumbers.push(n);
         } else {
-
-            if (this.attempts > 12) {
+            const maxRounds = this.maxAttempts % 2 ? this.maxAttempts + 1 : this.maxAttempts;
+            
+            if (this.attempts % maxRounds === 0) {
                 this.maxBets = this.defaultBets;
+                console.log('== Round failed ==');
+                console.log(this.bets.entries());
+                console.log('_________________');
                 this.bets.clear();
-            } else if (this.attempts > 6) {
+            } else if (this.attempts % (maxRounds / 2) === 0) {
                 this.maxBets = Math.round(this.defaultBets * 1.5);
             }
 
@@ -117,12 +121,7 @@ class Bets {
             const bets = this.bets.entries();
 
             for (let [n, attempts] of bets) {
-                if (attempts >= this.maxAttempts) {
-                    this.bets.delete(n);
-                    ignoreNumbers.push(n);
-                } else {
-                    this.bets.set(n, attempts + 1);
-                }
+                this.bets.set(n, attempts + 1);
             }
         }
 
