@@ -177,8 +177,10 @@ function calcWinAttempts(lineStructure, service) {
 
     const element = createItem(template, service.attempts);
 
-    const positive = service.attempts < 36 / service.maxBets;
-    const negative = service.attempts > 36 / service.maxBets;
+    const maxRounds = this.maxAttempts % 2 ? this.maxAttempts + 1 : this.maxAttempts;
+
+    const positive = service.attempts <= maxRounds / 2;
+    const negative = service.attempts > maxRounds / 2;
 
     if (positive) {
         element.classList.remove('neutral');
