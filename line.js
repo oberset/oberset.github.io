@@ -136,8 +136,6 @@ class Bets {
             next = numbers[0][0];
         }
 
-        console.log('numbers', numbers);
-
         return next;
     }
 
