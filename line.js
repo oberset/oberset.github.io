@@ -41,17 +41,15 @@ class Line {
 }
 
 class Bets {
-    constructor(maxBets = 4, maxAttempts = 18, step = 2) {
+    constructor(coldNumbers = 6, hotNumbers = 3) {
         this.orders = new Map();
         this.bets = new Map();
-        this.maxBets = maxBets;
-        this.maxAttempts = maxAttempts;
+        this.coldNumbers = coldNumbers;
+        this.hotNumbers = hotNumbers;
         this.rounds = 0;
         this.began = false;
         this.attempts = 0;
         this.lastResults = [];
-        this.step = step;
-        this.defaultBets = maxBets;
     }
 
     start() {
@@ -79,12 +77,6 @@ class Bets {
             this.rounds += 1;
             this.attempts += 1;
         }
-
-        const [hotAvg] = getAvgHotColdRepeats(this.orders);
-
-        if (hotAvg > 0) {
-            this.maxAttempts = hotAvg;
-        }
     }
 
     next(n) {
@@ -100,41 +92,52 @@ class Bets {
             this.bets.clear();
             this.lastResults.push(this.attempts);
             this.attempts = 1;
-            this.maxBets = this.defaultBets;
             ignoreNumbers.push(n);
-        } else {
-            const maxRounds = this.maxAttempts % 2 ? this.maxAttempts + 1 : this.maxAttempts;
-            console.log('Rounds', maxRounds);
-
-            if (this.attempts > 1) {
-                if ((this.attempts - 1) % maxRounds === 0) {
-                    this.maxBets = this.defaultBets;
-                    console.log('== Round failed ==');
-                    console.log(this.bets.entries());
-                    console.log('_________________');
-                    this.bets.clear();
-                } else if ((this.attempts - 1) % (maxRounds / 2) === 0) {
-                    this.maxBets = Math.round(this.defaultBets * 1.5);
-                }
-            }
         }
 
         if (this.bets.size > 0) {
             const bets = this.bets.entries();
 
             for (let [n, attempts] of bets) {
-                this.bets.set(n, attempts + 1);
+                if (attempts >= 27) {
+                    this.bets.delete(n);
+                } else {
+                    this.bets.set(n, attempts + 1);
+                }
             }
         }
 
-        const nextBets = this.maxBets - this.bets.size;
+        const nextBets = this.coldNumbers - this.bets.size;
 
         for (let i = 0; i < nextBets; i++) {
-            const next = this.getNextBet(ignoreNumbers);
+            const next = this.getColdNumber(ignoreNumbers);
             this.bets.set(next, 1);
         }
 
         return this.bets.entries();
+    }
+
+    getColdNumber(ignoreNumbers) {
+        const numbers = Array.from(this.orders.entries()).filter(([n]) => {
+            return !this.bets.has(n) && !ignoreNumbers.includes(n);
+        });
+
+        numbers.sort((a, b) => {
+            const [,ao] = a;
+            const [,bo] = b;
+
+            return ao - bo;
+        });
+
+        let [next] = currentGame.numbers;
+
+        if (numbers.length) {
+            next = numbers[0][0];
+        }
+
+        console.log('numbers', numbers);
+
+        return next;
     }
 
     getNextBet(ignoreNumbers) {
