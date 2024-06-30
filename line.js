@@ -89,7 +89,7 @@ class Bets {
         const ignoreNumbers = [];
 
         if (this.bets.has(n)) {
-            this.bets.clear();
+            this.bets.delete(n);
             this.lastResults.push(this.attempts);
             this.attempts = 1;
             ignoreNumbers.push(n);
@@ -99,8 +99,9 @@ class Bets {
             const bets = this.bets.entries();
 
             for (let [n, attempts] of bets) {
-                if (attempts >= 27) {
+                if (attempts > 27) {
                     this.bets.delete(n);
+                    ignoreNumbers.push(n);
                 } else {
                     this.bets.set(n, attempts + 1);
                 }
