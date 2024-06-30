@@ -126,7 +126,7 @@ class Bets {
             const [,ao] = a;
             const [,bo] = b;
 
-            return ao - bo;
+            return bo - ao;
         });
 
         let [next] = currentGame.numbers;
