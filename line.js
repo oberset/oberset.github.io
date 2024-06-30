@@ -140,7 +140,7 @@ class Bets {
         return next;
     }
 
-    getNextBet(ignoreNumbers) {
+    /*getNextBet(ignoreNumbers) {
         let max = 0;
 
         const list = Array.from(this.orders.entries()).filter(([n]) => {
@@ -162,7 +162,7 @@ class Bets {
         }
 
         return next;
-    }
+    }*/
 }
 
 function line() {
