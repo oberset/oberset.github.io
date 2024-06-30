@@ -177,24 +177,7 @@ function calcWinAttempts(lineStructure, service) {
 
     const element = createItem(template, service.attempts);
 
-    const maxRounds = service.maxAttempts % 2 ? service.maxAttempts + 1 : service.maxAttempts;
-
-    const positive = service.attempts <= maxRounds / 2;
-    const negative = service.attempts > maxRounds / 2;
-
-    if (positive) {
-        element.classList.remove('neutral');
-        element.classList.remove('red');
-        element.classList.add('green');
-    } else if (negative) {
-        element.classList.remove('neutral');
-        element.classList.remove('green');
-        element.classList.add('red');
-    } else {
-        element.classList.remove('red');
-        element.classList.remove('green');
-        element.classList.add('neutral');
-    }
+    element.classList.add('neutral');
 
     lineStructure.updateItems(items, element);
 }
