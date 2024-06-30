@@ -124,8 +124,8 @@ class Bets {
         });
 
         numbers.sort((a, b) => {
-            const [,ao] = a;
-            const [,bo] = b;
+            const [,ao = 0] = a;
+            const [,bo = 0] = b;
 
             return bo - ao;
         });
