@@ -23,13 +23,13 @@ function addNumber(number) {
 }
 
 function deleteLastNumber() {
-    currentGame.numbers.shift();
     emit('delete_number');
 
-    // const list = currentGame.numbers;
-    // currentGame.numbers = [];
+    currentGame.numbers.shift();
+    const list = currentGame.numbers;
+    currentGame.numbers = [];
 
-    // addNumbers(list);
+    addNumbers(list);
 }
 
 function addNumbers(list) {
