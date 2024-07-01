@@ -34,6 +34,9 @@ function deleteLastNumber() {
 
 function addNumbers(list) {
     const next = (items) => {
+        if (!items.length) {
+            return;
+        }
         const [current, ...others] = items;
         setTimeout(() => {
             addNumber(current);
