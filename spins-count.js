@@ -4,10 +4,6 @@ function spinsCount() {
     addEventListener('add_number', () => {
         nextSpin(lineStructure);
     });
-
-    addEventListener('delete_number', () => {
-        nextSpin(lineStructure);
-    });
 }
 
 function nextSpin(lineStructure, spin) {
