@@ -26,7 +26,7 @@ function deleteLastNumber() {
     emit('delete_number');
 
     currentGame.numbers.shift();
-    const list = currentGame.numbers;
+    const list = currentGame.numbers.reverse();
     currentGame.numbers = [];
 
     addNumbers(list);
