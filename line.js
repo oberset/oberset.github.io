@@ -138,36 +138,10 @@ class Bets {
 
         return next;
     }
-
-    /*getNextBet(ignoreNumbers) {
-        let max = 0;
-
-        const list = Array.from(this.orders.entries()).filter(([n]) => {
-            const offset = getLastOffset(true, n);
-            const maxOffset = (this.maxAttempts * 2) + 1;
-            if (offset > maxOffset) {
-                return false;
-            }
-            return !this.bets.has(n) && !ignoreNumbers.includes(n);
-        });
-
-        let [next] = currentGame.numbers;
-
-        for (let [n, offset] of list) {
-            if (offset > max) {
-                max = offset;
-                next = n;
-            }
-        }
-
-        return next;
-    }*/
 }
 
 function line() {
     const lineStructure = new Line('.line');
-
-    let lastElement;
 
     addEventListener('add_number', () => {
         const [n] = currentGame.numbers;
@@ -178,7 +152,6 @@ function line() {
         const template = lineStructure.getFirstItemElement(items);
 
         const element = lineStructure.createItem(template, numberInfo);
-        lastElement = element;
 
         if (currentGame.numbers.length > 1) {
             lineStructure.addItem(items, element);
@@ -188,17 +161,15 @@ function line() {
     });
 
     addEventListener('delete_number', () => {
-        if (lastElement) {
-            if (currentGame.numbers.length > 0) {
-                const group = lineStructure.getFirstItemsGroupElement();
-                const items = lineStructure.getItemsElement(group);
+        const group = lineStructure.getFirstItemsGroupElement();
+        const items = lineStructure.getItemsElement(group);
+        const element = lineStructure.getFirstItemElement(items);
 
-                lastElement = lineStructure.getFirstItemElement(items);
-                items.removeChild(lastElement);
-            } else {
-                lastElement = null;
-            }
-        }
+        const empty = createItem(element, '');
+        element.classList.add('neutral');
+        element.style.width = `0px`;
+
+        lineStructure.updateItems(items, empty);
     });
 }
 
