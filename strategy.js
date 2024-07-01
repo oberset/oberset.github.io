@@ -50,6 +50,11 @@ function lastNumbersStrategy() {
         nextSpin(gameRoundsStructure, service.rounds);
         calcNumbersPosition(numbersPositionStructure, service.orders.entries());
         calcWinAttempts(winAttemptsStructure, service);
+
+        button.classList.remove('neutral');
+        button.classList.add('green');
+        button.style.cursor = 'pointer';
+        button.addEventListener('click', buttonEventListener);
     });
 }
 
