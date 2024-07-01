@@ -25,12 +25,23 @@ function addNumber(number) {
 function deleteLastNumber() {
     currentGame.numbers.shift();
     emit('delete_number');
+
+    const list = currentGame.numbers;
+    currentGame.numbers = [];
+
+    addNumbers(list);
 }
 
 function addNumbers(list) {
-    for (let item of list) {
-        addNumber(item);
-    }
+    const next = (items) => {
+        const [current, ...others] = items;
+        setTimeout(() => {
+            addNumber(current);
+            next(others);
+        }, 50);
+    };
+
+    next(list);
 }
 
 function deleteLast() {
