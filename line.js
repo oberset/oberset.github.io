@@ -35,8 +35,10 @@ class Line {
     }
 
     updateItems(itemsElement, fragment) {
-        const item = this.getFirstItemElement(itemsElement);
-        itemsElement.replaceChild(fragment, item);
+        while (itemsElement.lastElementChild) {
+            itemsElement.removeChild(itemsElement.lastElementChild);
+        }
+        itemsElement.appendChild(fragment);
     }
 }
 
