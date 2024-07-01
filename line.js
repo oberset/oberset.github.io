@@ -167,7 +167,7 @@ function line() {
         const template = lineStructure.getFirstItemElement(items);
 
         const element = createItem(template, 'N');
-        element.classList.add('neutral');
+        element.classList.remove('green', 'red', 'black');
 
         lineStructure.updateItems(items, element);
     });
