@@ -62,11 +62,10 @@ class Bets {
     clear() {
         this.orders = new Map();
         this.bets = new Map();
-        this.rounds = 1;
+        this.rounds = 0;
         this.began = false;
-        this.attempts = 1;
+        this.attempts = 0;
         this.lastResults = [];
-        console.log('clear');
     }
 
     addPosition(n) {
@@ -163,13 +162,13 @@ function line() {
     addEventListener('delete_number', () => {
         const group = lineStructure.getFirstItemsGroupElement();
         const items = lineStructure.getItemsElement(group);
-        const element = lineStructure.getFirstItemElement(items);
+        const template = lineStructure.getFirstItemElement(items);
 
-        const empty = createItem(element, '');
+        const element = lineStructure.createItem(template, '');
         element.classList.add('neutral');
         element.style.width = `0px`;
 
-        lineStructure.updateItems(items, empty);
+        lineStructure.updateItems(items, element);
     });
 }
 
