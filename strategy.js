@@ -1,27 +1,3 @@
-/*function lineStrategy() {
-    const lineStructure = new Line('.strategy-line');
-
-    addEventListener('add_number', () => {
-        calcLineStrategyScore(lineStructure, 'red', currentGame.numbers.length <= 1);
-    });
-}*/
-
-/*function parityStrategy() {
-    const lineStructure = new Line('.strategy-parity');
-
-    addEventListener('add_number', () => {
-        calcLineStrategyScore(lineStructure, 'odd', currentGame.numbers.length <= 1);
-    });
-}*/
-
-/*function bigNumbersStrategy() {
-    const lineStructure = new Line('.strategy-big-numbers');
-
-    addEventListener('add_number', () => {
-        calcLineStrategyScore(lineStructure, 'big', currentGame.numbers.length <= 1);
-    });
-}*/
-
 function repeatsStrategy() {
     const lineStructure = new Line('.strategy-repeats');
 
@@ -34,15 +10,11 @@ function repeatsStrategy() {
         const items = lineStructure.getItemsElement(group);
         const element = lineStructure.getFirstItemElement(items);
 
-        if (currentGame.numbers.length > 1) {
-            items.removeChild(element);
-        } else {
-            const empty = createItem(element, '');
-            element.classList.add('neutral');
-            element.style.width = `0px`;
+        const empty = createItem(element, '');
+        element.classList.add('neutral');
+        element.style.width = `0px`;
 
-            lineStructure.updateItems(items, empty);
-        }
+        lineStructure.updateItems(items, empty);
     });
 }
 
