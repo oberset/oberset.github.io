@@ -145,7 +145,7 @@ function line() {
     addEventListener('add_number', () => {
         const [n] = currentGame.numbers;
         const numberInfo = NUMBER_INFO.get(n);
-        console.log('numberInfo', numberInfo);
+
         const group = lineStructure.getFirstItemsGroupElement();
         const items = lineStructure.getItemsElement(group);
         const template = lineStructure.getFirstItemElement(items);
