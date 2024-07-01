@@ -166,9 +166,8 @@ function line() {
         const items = lineStructure.getItemsElement(group);
         const template = lineStructure.getFirstItemElement(items);
 
-        const element = createItem(template, '');
+        const element = createItem(template, 'N');
         element.classList.add('neutral');
-        element.style.width = `0px`;
 
         lineStructure.updateItems(items, element);
     });
