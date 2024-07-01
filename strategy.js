@@ -55,6 +55,8 @@ function lastNumbersStrategy() {
         button.classList.add('green');
         button.style.cursor = 'pointer';
         button.addEventListener('click', buttonEventListener);
+
+        service.start();
     });
 }
 
