@@ -156,7 +156,13 @@ function calcWinAttempts(lineStructure, service) {
 
     const element = createItem(template, service.attempts);
 
-    element.classList.add('neutral');
+    if (service.attempts >= 9) {
+        element.classList.remove('neutral');
+        element.classList.add('red');
+    } else {
+        element.classList.remove('red');
+        element.classList.add('neutral');
+    }
 
     lineStructure.updateItems(items, element);
 }
