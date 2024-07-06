@@ -99,7 +99,6 @@ class Bets {
         if (this.bets.size > 0) {
             const bets = this.bets.entries();
             const [hotAvg] = getAvgHotColdRepeats(this.orders);
-            console.log('hotAvg', hotAvg);
             const maxAttempts = Math.ceil(hotAvg * 1.5);
 
             for (let [n, attempts] of bets) {
