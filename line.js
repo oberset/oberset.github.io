@@ -43,15 +43,25 @@ class Line {
 }
 
 class Bets {
-    constructor(coldNumbers = 6, hotNumbers = 3) {
+    constructor(numbersCount = 6) {
         this.orders = new Map();
         this.bets = new Map();
-        this.coldNumbers = coldNumbers;
-        this.hotNumbers = hotNumbers;
+        this.numbersCount = numbersCount;
         this.rounds = 0;
         this.began = false;
         this.attempts = 0;
         this.lastResults = [];
+        this.type = 'cold';
+    }
+
+    setType(type) {
+        if ((type === 'cold' || type === 'hot') && this.type !== type) {
+            this.type = type;
+            this.bets = new Map();
+            this.rounds = 0;
+            this.began = false;
+            this.attempts = 0;
+        }
     }
 
     start() {
@@ -88,18 +98,21 @@ class Bets {
         }
 
         const ignoreNumbers = [];
+        const [hotAvg] = getAvgHotColdRepeats(this.orders);
 
         if (this.bets.has(n)) {
             this.bets.delete(n);
             this.lastResults.push(this.attempts);
             this.attempts = 1;
-            ignoreNumbers.push(n);
+
+            if (this.type === 'cold') {
+                ignoreNumbers.push(n);
+            }
         }
 
         if (this.bets.size > 0) {
             const bets = this.bets.entries();
-            const [hotAvg] = getAvgHotColdRepeats(this.orders);
-            const maxAttempts = Math.ceil(hotAvg * 1.5);
+            const maxAttempts = this.getMaxAttempt(hotAvg);
 
             for (let [n, attempts] of bets) {
                 if (attempts >= maxAttempts) {
@@ -111,20 +124,77 @@ class Bets {
             }
         }
 
-        const nextBets = this.coldNumbers - this.bets.size;
+        const nextBets = this.numbersCount - this.bets.size;
 
         for (let i = 0; i < nextBets; i++) {
-            const next = this.getColdNumber(ignoreNumbers);
+            const next = this.getNumber(ignoreNumbers, hotAvg);
+            if (next === undefined) {
+                break;
+            }
             this.bets.set(next, 1);
         }
 
         return this.bets.entries();
     }
 
-    getColdNumber(ignoreNumbers) {
-        const numbers = Array.from(this.orders.entries()).filter(([n]) => {
+    getNumber(ignoreNumbers, hotAvg) {
+        if (this.type === 'cold') {
+            return this.getColdNumber(ignoreNumbers, hotAvg);
+        } else if (this.type === 'hot') {
+            return this.getHotNumber(ignoreNumbers);
+        }
+    }
+
+    filterNumbers(ignoreNumbers) {
+        return Array.from(this.orders.entries()).filter(([n]) => {
             return !this.bets.has(n) && !ignoreNumbers.includes(n);
         });
+    }
+
+    getMaxAttempt(hotAvg) {
+        if (this.type === 'cold') {
+            return Math.ceil(hotAvg * 1.5);
+        }
+        return 12;
+    }
+
+    getHotNumber(ignoreNumbers) {
+        const lastNumbers = currentGame.numbers.slice(0, 27).filter((n) => {
+            return !this.bets.has(n) && !ignoreNumbers.includes(n);
+        });
+
+        let result;
+
+        while (lastNumbers.length) {
+            const n = lastNumbers.shift();
+            if (n !== undefined) {
+                if (lastNumbers.includes(n)) {
+                    result = n;
+                    break;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    getColdNumber(ignoreNumbers, hotAvg) {
+        const numbers = this.filterNumbers(ignoreNumbers).map(([n, lastRepeat]) => {
+            if (!lastRepeat) {
+                return;
+            }
+
+            const offset = getLastOffset(false, n);
+
+            if (offset > lastRepeat) {
+                return;
+            }
+
+            const count = Math.min(offset, hotAvg * 3);
+            const newOffset = lastRepeat - count;
+
+            return [n, newOffset];
+        }).filter(Boolean);
 
         numbers.sort((a, b) => {
             const [,ao = 0] = a;
@@ -142,6 +212,16 @@ class Bets {
         return next;
     }
 }
+
+Object.assign(Bets, {
+    instance: null,
+    getInstance(numbersCount = 6) {
+        if (this.instance === null) {
+            this.instance = new Bets(numbersCount);
+        }
+        return this.instance;
+    }
+});
 
 function line() {
     const lineStructure = new Line('.line');
