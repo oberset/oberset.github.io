@@ -18,13 +18,13 @@ function repeatsStrategy() {
     });
 }
 
-function lastNumbersStrategy() {
+function lastNumbersStrategy(numbersCount = 6) {
     const lineStructure = new Line('.strategy-last-numbers');
     const numbersPositionStructure = new Line('.numbers-position');
     const gameRoundsStructure = new Line('.game-rounds-count');
     const winAttemptsStructure = new Line('.win-attempts');
 
-    const service = new Bets();
+    const service = Bets.getInstance(numbersCount);
 
     const button = document.querySelector('.start-game');
     const buttonEventListener = () => {
@@ -58,6 +58,24 @@ function lastNumbersStrategy() {
 
         service.start();
     });
+
+    const control = document.querySelector('#choice-type');
+    if (control) {
+        control.addEventListener('change', (event) => {
+            const checked = event.target.checked;
+            service.setType(checked ? 'hot' : 'cold');
+
+            calcLastNumbers(lineStructure, service);
+            nextSpin(gameRoundsStructure, service.rounds);
+            calcNumbersPosition(numbersPositionStructure, service.orders.entries());
+            calcWinAttempts(winAttemptsStructure, service);
+
+            button.classList.remove('neutral');
+            button.classList.add('green');
+            button.style.cursor = 'pointer';
+            button.addEventListener('click', buttonEventListener);
+        });
+    }
 }
 
 function calcLineStrategyScore(lineStructure, prop, isUpdate = false) {
