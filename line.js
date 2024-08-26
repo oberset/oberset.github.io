@@ -272,8 +272,8 @@ function line() {
 
 function getLastOffset(calcRepeatsOnly = true, forNumber = undefined) {
     const [last, ...prev] = currentGame.numbers;
-    const current = forNumber || last;
-    const list = forNumber ? currentGame.numbers : prev;
+    const current = forNumber !== undefined ? forNumber : last;
+    const list = forNumber !== undefined ? currentGame.numbers : prev;
 
     let value;
 
