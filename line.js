@@ -99,6 +99,7 @@ class Bets {
 
         const ignoreNumbers = [];
         const [hotAvg] = getAvgHotColdRepeats(this.orders);
+        const maxAttempts = this.getMaxAttempt(hotAvg);
 
         if (this.bets.has(n)) {
             this.bets.delete(n);
@@ -112,7 +113,6 @@ class Bets {
 
         if (this.bets.size > 0) {
             const bets = this.bets.entries();
-            const maxAttempts = this.getMaxAttempt(hotAvg);
 
             for (let [n, attempts] of bets) {
                 if (attempts >= maxAttempts) {
@@ -131,7 +131,16 @@ class Bets {
             if (next === undefined) {
                 break;
             }
-            this.bets.set(next, 1);
+
+            let currentAttempt = 1;
+
+            if (this.type === 'hot') {
+                currentAttempt = getLastOffset(false, next);
+            }
+
+            if (currentAttempt < maxAttempts) {
+                this.bets.set(next, currentAttempt);
+            }
         }
 
         return this.bets.entries();
@@ -167,6 +176,12 @@ class Bets {
 
         while (lastNumbers.length) {
             const n = lastNumbers.shift();
+            const offset = getLastOffset(false, n);
+            console.log('Number', n, offset);
+            if (offset > 12) {
+                break;
+            }
+
             if (n !== undefined) {
                 if (lastNumbers.includes(n)) {
                     result = n;
