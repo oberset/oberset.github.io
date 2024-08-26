@@ -168,7 +168,7 @@ class Bets {
     }
 
     getHotNumber(ignoreNumbers) {
-        const lastNumbers = currentGame.numbers.slice(0, 24).filter((n) => {
+        const lastNumbers = currentGame.numbers.slice(0, 25).filter((n) => {
             return !this.bets.has(n) && !ignoreNumbers.includes(n);
         });
 
