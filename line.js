@@ -138,7 +138,7 @@ class Bets {
                 currentAttempt = getLastOffset(false, next);
             }
 
-            if (currentAttempt < maxAttempts) {
+            if (currentAttempt <= maxAttempts) {
                 this.bets.set(next, currentAttempt);
             }
         }
