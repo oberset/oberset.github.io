@@ -177,7 +177,7 @@ class Bets {
         while (lastNumbers.length) {
             const n = lastNumbers.shift();
             const offset = getLastOffset(false, n);
-            console.log('Number', n, offset);
+
             if (offset > 12) {
                 break;
             }
