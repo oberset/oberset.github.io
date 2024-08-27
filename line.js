@@ -159,18 +159,20 @@ class Bets {
         const next = this.getHotNumber();
 
         if (next !== undefined) {
+            console.log('Number', next);
             this.hotNumbersList.push(next);
+
+            this.hotNumbersList = this.hotNumbersList.slice(0, this.numbersCount);
+            console.log('hotNumbersList', this.hotNumbersList);
+
+            this.bets.clear();
+
+            for (let nextNumber of this.hotNumbersList) {
+                this.bets.set(nextNumber, 1);
+            }
+            console.log('Bets', this.bets.entries()); 
         }
-
-        this.hotNumbersList = this.hotNumbersList.slice(0, this.numbersCount);
-        console.log('hotNumbersList', this.hotNumbersList);
-
-        this.bets.clear();
-
-        for (let nextNumber of this.hotNumbersList) {
-            this.bets.set(nextNumber, 1);
-        }
-        console.log('Bets', this.bets.entries());    
+           
         return this.bets.entries();
     }
 
