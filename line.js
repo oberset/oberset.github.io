@@ -197,6 +197,10 @@ class Bets {
         while (lastNumbers.length) {
             const n = lastNumbers.shift();
 
+            if (this.hotNumbersList.includes(n)) {
+                continue;
+            }
+
             if (n !== undefined) {
                 if (lastNumbers.includes(n)) {
                     result = n;
