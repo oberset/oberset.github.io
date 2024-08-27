@@ -160,7 +160,7 @@ class Bets {
 
         if (next !== undefined) {
             console.log('Number', next);
-            this.hotNumbersList.push(next);
+            this.hotNumbersList.unshift(next);
 
             this.hotNumbersList = this.hotNumbersList.slice(0, this.numbersCount);
             console.log('hotNumbersList', this.hotNumbersList);
