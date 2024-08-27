@@ -189,7 +189,15 @@ class Bets {
         return 12;
     }
 
-    getHotNumber(ignoreNumbers) {
+    getHotNumber(ignoreNumbers = []) {
+        const [first] = ignoreNumbers;
+
+        let maxOffset = 25;
+
+        if (first !== undefined) {
+            maxOffset = getLastOffset(false, first);
+        }
+        
         const lastNumbers = currentGame.numbers.slice(0, 25).filter((n) => {
             return !ignoreNumbers.includes(n);
         });
@@ -200,6 +208,12 @@ class Bets {
             const n = lastNumbers.shift();
 
             if (n !== undefined) {
+                const currentOffset = getLastOffset(false, n);
+
+                if (currentOffset > maxOffset) {
+                    break;
+                }
+                
                 if (lastNumbers.includes(n)) {
                     result = n;
                     break;
