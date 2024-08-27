@@ -148,7 +148,7 @@ class Bets {
 
         if (this.bets.size > 0) {
             const bets = this.bets.entries();
-            const maxAttempts = 18;
+            const maxAttempts = 9;
 
             for (let [n, attempts] of bets) {
                 if (attempts >= maxAttempts) {
@@ -188,13 +188,13 @@ class Bets {
     getHotNumber(ignoreNumbers = []) {
         const [first] = ignoreNumbers;
 
-        let maxOffset = 28;
+        let maxOffset = 19;
 
         if (first !== undefined) {
             maxOffset = getLastOffset(false, first);
         }
         
-        const lastNumbers = currentGame.numbers.slice(0, 28).filter((n) => {
+        const lastNumbers = currentGame.numbers.slice(0, 19).filter((n) => {
             return !ignoreNumbers.includes(n);
         });
 
