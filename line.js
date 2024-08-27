@@ -52,7 +52,6 @@ class Bets {
         this.attempts = 0;
         this.lastResults = [];
         this.type = 'cold';
-        this.hotNumbersList = [];
     }
 
     setType(type) {
@@ -62,7 +61,6 @@ class Bets {
             this.rounds = 0;
             this.began = false;
             this.attempts = 0;
-            this.hotNumbersList = [];
         }
     }
 
@@ -80,7 +78,6 @@ class Bets {
         this.began = false;
         this.attempts = 0;
         this.lastResults = [];
-        this.hotNumbersList = [];
     }
 
     addPosition(n) {
@@ -136,15 +133,7 @@ class Bets {
                 break;
             }
 
-            let currentAttempt = 1;
-
-            if (this.type === 'hot') {
-                currentAttempt = getLastOffset(false, next);
-            }
-
-            if (currentAttempt <= maxAttempts) {
-                this.bets.set(next, currentAttempt);
-            }
+            this.bets.set(next, 1);
         }
 
         return this.bets.entries();
@@ -152,22 +141,32 @@ class Bets {
 
     nextHotNumbers(n) {
         if (this.bets.has(n)) {
+            this.bets.delete(n);
             this.lastResults.push(this.attempts);
             this.attempts = 1;
         }
 
-        const next = this.getHotNumber(this.hotNumbersList);
+        if (this.bets.size > 0) {
+            const bets = this.bets.entries();
+            const maxAttempts = 12;
+
+            for (let [n, attempts] of bets) {
+                if (attempts >= maxAttempts) {
+                    this.bets.delete(n);
+                } else {
+                    this.bets.set(n, attempts + 1);
+                }
+            }
+        }
+
+        let currentList = this.bets.entries();
+        
+        const next = this.getHotNumber(currentList.map(([n]) => n));
 
         if (next !== undefined) {
-            this.hotNumbersList.unshift(next);
-
-            this.hotNumbersList = this.hotNumbersList.slice(0, this.numbersCount);
-
-            this.bets.clear();
-
-            for (let nextNumber of this.hotNumbersList) {
-                this.bets.set(nextNumber, 1);
-            }
+            currentList.unshift([next, 1]);
+            currentList = currentList.slice(0, this.numbersCount);
+            this.bets = new Map(currentList);
         }
            
         return this.bets.entries();
@@ -179,7 +178,7 @@ class Bets {
         });
     }
 
-    getMaxAttempt(hotAvg) {
+    getMaxAttempt(hotAvg = 18) {
         if (this.type === 'cold') {
             return Math.ceil(hotAvg * 1.5);
         }
