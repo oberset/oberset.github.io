@@ -156,7 +156,7 @@ class Bets {
             this.attempts = 1;
         }
 
-        const next = this.getHotNumber();
+        const next = this.getHotNumber(this.hotNumbersList);
 
         if (next !== undefined) {
             console.log('Number', next);
@@ -189,17 +189,15 @@ class Bets {
         return 12;
     }
 
-    getHotNumber() {
-        const lastNumbers = currentGame.numbers.slice(0, 25);
+    getHotNumber(ignoreNumbers) {
+        const lastNumbers = currentGame.numbers.slice(0, 25).filter((n) => {
+            return !ignoreNumbers.includes(n);
+        });
 
         let result;
 
         while (lastNumbers.length) {
             const n = lastNumbers.shift();
-
-            if (this.hotNumbersList.includes(n)) {
-                continue;
-            }
 
             if (n !== undefined) {
                 if (lastNumbers.includes(n)) {
