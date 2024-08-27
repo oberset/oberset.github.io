@@ -148,7 +148,7 @@ class Bets {
 
         if (this.bets.size > 0) {
             const bets = this.bets.entries();
-            const maxAttempts = 9;
+            const maxAttempts = 12;
 
             for (let [n, attempts] of bets) {
                 if (attempts >= maxAttempts) {
