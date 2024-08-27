@@ -159,7 +159,7 @@ class Bets {
             }
         }
 
-        let currentList = this.bets.entries();
+        let currentList = Array.from(this.bets.entries());
         
         const next = this.getHotNumber(currentList.map(([n]) => n));
 
