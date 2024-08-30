@@ -235,7 +235,7 @@ class Bets {
                 return;
             }
 
-            const count = Math.min(offset, coldAvg);
+            const count = Math.min(Math.ceil(offset / 1.5), coldAvg);
             const newOffset = lastRepeat - count;
 
             return [n, newOffset];
