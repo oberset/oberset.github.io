@@ -223,6 +223,10 @@ class Bets {
     }
 
     getColdNumber(ignoreNumbers, coldAvg) {
+        if (coldAvg < 37) {
+            return;
+        }
+
         const numbers = this.filterNumbers(ignoreNumbers).map(([n, lastRepeat]) => {
             if (!lastRepeat) {
                 return;
