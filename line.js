@@ -97,11 +97,12 @@ class Bets {
             return [];
         }
 
+        const [hotAvg, coldAvg] = getAvgHotColdRepeats(this.orders);
+
         if (this.type === 'hot') {
-            return this.nextHotNumbers(n);
+            return this.nextHotNumbers(n, hotAvg);
         }
 
-        const [hotAvg] = getAvgHotColdRepeats(this.orders);
         const ignoreNumbers = [];
         const maxAttempts = this.getMaxAttempt(hotAvg);
 
@@ -128,7 +129,8 @@ class Bets {
         const nextBets = this.numbersCount - this.bets.size;
 
         for (let i = 0; i < nextBets; i++) {
-            const next = this.getColdNumber(ignoreNumbers, hotAvg);
+            const next = this.getColdNumber(ignoreNumbers, coldAvg);
+
             if (next === undefined) {
                 break;
             }
@@ -139,7 +141,7 @@ class Bets {
         return this.bets.entries();
     }
 
-    nextHotNumbers(n) {
+    nextHotNumbers(n, hotAvg) {
         if (this.bets.has(n)) {
             this.bets.delete(n);
             this.lastResults.push(this.attempts);
@@ -148,7 +150,7 @@ class Bets {
 
         if (this.bets.size > 0) {
             const bets = this.bets.entries();
-            const maxAttempts = 12;
+            const maxAttempts = this.getMaxAttempt(hotAvg);
 
             for (let [n, attempts] of bets) {
                 if (attempts >= maxAttempts) {
@@ -180,21 +182,21 @@ class Bets {
 
     getMaxAttempt(hotAvg = 18) {
         if (this.type === 'cold') {
-            return Math.ceil(hotAvg * 1.5);
+            return Math.max(Math.round(hotAvg * 1.5), 18);
         }
-        return 12;
+        return hotAvg + 1;
     }
 
     getHotNumber(ignoreNumbers = []) {
         const [first] = ignoreNumbers;
 
-        let maxOffset = 19;
+        let maxOffset = 25;
 
         if (first !== undefined) {
             maxOffset = getLastOffset(false, first);
         }
         
-        const lastNumbers = currentGame.numbers.slice(0, 19).filter((n) => {
+        const lastNumbers = currentGame.numbers.slice(0, 25).filter((n) => {
             return !ignoreNumbers.includes(n);
         });
 
@@ -220,19 +222,20 @@ class Bets {
         return result;
     }
 
-    getColdNumber(ignoreNumbers, hotAvg) {
+    getColdNumber(ignoreNumbers, coldAvg) {
         const numbers = this.filterNumbers(ignoreNumbers).map(([n, lastRepeat]) => {
             if (!lastRepeat) {
                 return;
             }
 
             const offset = getLastOffset(false, n);
+            const maxOffset = Math.min(lastRepeat, Math.round(coldAvg * 1.5));
 
-            if (offset > lastRepeat) {
+            if (offset > maxOffset) {
                 return;
             }
 
-            const count = Math.min(offset, hotAvg * 3);
+            const count = Math.min(offset, coldAvg);
             const newOffset = lastRepeat - count;
 
             return [n, newOffset];
@@ -245,7 +248,7 @@ class Bets {
             return bo - ao;
         });
 
-        let [next] = currentGame.numbers;
+        let next;
 
         if (numbers.length) {
             next = numbers[0][0];
