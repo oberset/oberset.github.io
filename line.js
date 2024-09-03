@@ -232,6 +232,10 @@ class Bets {
                 return;
             }
 
+            if (lastRepeat < coldAvg) {
+                return;
+            }
+
             const offset = getLastOffset(false, n);
             const maxOffset = Math.min(lastRepeat, Math.round(coldAvg * 1.5));
 
@@ -239,7 +243,7 @@ class Bets {
                 return;
             }
 
-            const count = Math.min(Math.ceil(offset / 1.5), coldAvg);
+            const count = Math.min(Math.ceil(offset / 2), coldAvg);
             const newOffset = lastRepeat - count;
 
             return [n, newOffset];
