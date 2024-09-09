@@ -174,7 +174,7 @@ function calcWinAttempts(lineStructure, service) {
 
     const element = createItem(template, service.attempts);
 
-    if (service.attempts > service.getMaxAttempt() {
+    if (service.attempts > service.getMaxAttempt()) {
         element.classList.remove('neutral');
         element.classList.add('red');
     } else {
