@@ -104,12 +104,11 @@ class Bets {
         }
 
         const ignoreNumbers = [];
-        const maxAttempts = this.getMaxAttempt(hotAvg);
+        const maxAttempts = this.getMaxAttempt();
 
         if (this.bets.has(n)) {
             this.bets.delete(n);
             this.lastResults.push(this.attempts);
-            this.attempts = 1;
             ignoreNumbers.push(n);
         }
 
@@ -124,18 +123,18 @@ class Bets {
                     this.bets.set(n, attempts + 1);
                 }
             }
-        }
+        } else {
+            this.attempts = 1;
 
-        const nextBets = this.numbersCount - this.bets.size;
-
-        for (let i = 0; i < nextBets; i++) {
-            const next = this.getColdNumber(ignoreNumbers, coldAvg);
-
-            if (next === undefined) {
-                break;
+            for (let i = 0; i < this.numbersCount; i++) {
+                const next = this.getColdNumber(ignoreNumbers, coldAvg);
+    
+                if (next === undefined) {
+                    break;
+                }
+    
+                this.bets.set(next, 1);
             }
-
-            this.bets.set(next, 1);
         }
 
         return this.bets.entries();
@@ -180,11 +179,11 @@ class Bets {
         });
     }
 
-    getMaxAttempt(hotAvg = 18) {
+    getMaxAttempt() {
         if (this.type === 'cold') {
-            return Math.max(Math.round(hotAvg * 1.5), 18);
+            return 36;
         }
-        return hotAvg + 1;
+        return 18;
     }
 
     getHotNumber(ignoreNumbers = []) {
