@@ -222,30 +222,18 @@ class Bets {
     }
 
     getColdNumber(ignoreNumbers, coldAvg) {
-        if (coldAvg < 37) {
-            return;
-        }
-
         const numbers = this.filterNumbers(ignoreNumbers).map(([n, lastRepeat]) => {
             if (!lastRepeat) {
                 return;
             }
 
-            if (lastRepeat < coldAvg) {
-                return;
-            }
-
             const offset = getLastOffset(false, n);
-            const maxOffset = Math.min(lastRepeat, Math.round(coldAvg * 1.5));
 
-            if (offset > maxOffset) {
+            if (offset > lastRepeat) {
                 return;
             }
 
-            const count = Math.min(Math.ceil(offset / 2), coldAvg);
-            const newOffset = lastRepeat - count;
-
-            return [n, newOffset];
+            return [n, lastRepeat];
         }).filter(Boolean);
 
         numbers.sort((a, b) => {
