@@ -182,7 +182,7 @@ class Bets {
 
     getMaxAttempt() {
         if (this.type === 'cold') {
-            return 36;
+            return 24;
         }
         return 18;
     }
