@@ -173,8 +173,9 @@ function calcWinAttempts(lineStructure, service) {
     const template = lineStructure.getFirstItemElement(items);
 
     const element = createItem(template, service.attempts);
+    const maxAttempts = Math.floor(36 / service.numbersCount);
 
-    if (service.attempts > service.getMaxAttempt()) {
+    if (service.attempts > maxAttempts) {
         element.classList.remove('neutral');
         element.classList.add('red');
     } else {
