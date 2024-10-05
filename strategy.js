@@ -162,14 +162,10 @@ function calcLastNumbers(lineStructure, service) {
     const numbers = list.map(([n]) => n);
     const offsets = list.map(([, k]) => k);
 
-    const numbersElement = createItem(template, numbers.join(' '));
-    numbersElement.classList.add('neutral');
+    const element = createItem(template, numbers.join(' ') + '\n' + offsets.join(' '));
+    element.classList.add('neutral');
 
-    const offsetsElement = createItem(template, offsets.join(' '));
-    offsetsElement.classList.add('neutral');
-
-    lineStructure.updateItems(items, numbersElement);
-    lineStructure.addItem(items, offsetsElement);
+    lineStructure.updateItems(items, element);
 }
 
 function calcWinAttempts(lineStructure, service) {
