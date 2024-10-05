@@ -70,7 +70,7 @@
 }
 .strategy.strategy-last-numbers .items {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     width: 100%;
 }
 
