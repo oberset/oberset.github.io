@@ -157,14 +157,19 @@ function calcLastNumbers(lineStructure, service) {
     const items = lineStructure.getItemsElement(group);
     const template = lineStructure.getFirstItemElement(items);
 
-    const numbers = Array.from(service.next(current).map(([n]) => n));
-    numbers.sort((a, b) => a < b ? -1 : 1);
-    const bets = numbers.join(' ');
+    const list = Array.from(service.next(current));
+    
+    const numbers = list.map(([n]) => n);
+    const offsets = list.map(([, k]) => k);
 
-    const element = createItem(template, bets);
-    element.classList.add('neutral');
+    const numbersElement = createItem(template, numbers.join(' '));
+    numbersElement.classList.add('neutral');
 
-    lineStructure.updateItems(items, element);
+    const offsetsElement = createItem(template, offsets.join(' '));
+    offsetsElement.classList.add('neutral');
+
+    lineStructure.updateItems(items, numbersElement);
+    lineStructure.addItem(items, offsetsElement);
 }
 
 function calcWinAttempts(lineStructure, service) {
