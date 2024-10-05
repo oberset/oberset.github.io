@@ -110,7 +110,6 @@ class Bets {
             this.bets.delete(n);
             this.lastResults.push(this.attempts);
             this.attempts = 1;
-            ignoreNumbers.push(n);
         }
 
         if (this.bets.size > 0) {
