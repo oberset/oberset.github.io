@@ -45,23 +45,12 @@ class Line {
 class Bets {
     constructor(numbersCount = 6) {
         this.orders = new Map();
-        this.bets = new Map();
+        this.bets = new Set();
         this.numbersCount = numbersCount;
         this.rounds = 0;
         this.began = false;
         this.attempts = 0;
-        this.lastResults = [];
-        this.type = 'cold';
-    }
-
-    setType(type) {
-        if ((type === 'cold' || type === 'hot') && this.type !== type) {
-            this.type = type;
-            this.bets = new Map();
-            this.rounds = 0;
-            this.began = false;
-            this.attempts = 0;
-        }
+        console.log('Numbers', this.numbersCount);
     }
 
     start() {
@@ -73,11 +62,10 @@ class Bets {
 
     clear() {
         this.orders = new Map();
-        this.bets = new Map();
+        this.bets = new Set();
         this.rounds = 0;
         this.began = false;
         this.attempts = 0;
-        this.lastResults = [];
     }
 
     addPosition(n) {
@@ -94,168 +82,64 @@ class Bets {
         this.addPosition(n);
 
         if (!this.began) {
+            const result = {};
+            const numbers = currentGame.numbers;
+
+            NUMBERS.forEach((item, index) => {
+                result[item.number] = 0;
+                const neighbors = [item.number, ...item.neighbors_1];
+                for (let n of neighbors) {
+                    const equals = numbers.filter((curr) => curr === n);
+                    if (equals.length) {
+                        result[item.number] += equals.length;
+                    }
+                }
+            });
+
+            const orders = Object.entries(result).reduce((acc, [n, count]) => {
+                if (count) {
+                    acc.push({
+                        number: n,
+                        count
+                    })
+                }
+                return acc;
+            }, []);
+
+            orders.sort((a, b) => {
+                return b.count - a.count;
+            });
+
+            const [max] = orders;
+            console.log('max', max);
+
+            const info = getNumberInfo(+max.number);
+            const [n1, n2] = info.neighbors_1;
+
+            this.bets = new Set([n1, max.number, n2]);
+
             return [];
         }
 
-        const [hotAvg, coldAvg] = getAvgHotColdRepeats(this.orders);
-
-        if (this.type === 'hot') {
-            return this.nextHotNumbers(n, hotAvg);
-        }
-
-        const ignoreNumbers = [];
-        const maxAttempts = this.getMaxAttempt();
-
         if (this.bets.has(n)) {
-            this.bets.delete(n);
-            this.lastResults.push(this.attempts);
             this.attempts = 1;
         }
 
-        if (this.bets.size > 0) {
-            const bets = this.bets.entries();
-
-            for (let [n, attempts] of bets) {
-                if (attempts >= maxAttempts) {
-                    this.bets.delete(n);
-                    ignoreNumbers.push(n);
-                } else {
-                    this.bets.set(n, attempts + 1);
-                }
-            }
-        }
-
-        const nextBets = this.numbersCount - this.bets.size;
-
-        for (let i = 0; i < nextBets; i++) {
-            const next = this.getColdNumber(ignoreNumbers, coldAvg);
-
-            if (next === undefined) {
-                break;
-            }
-
-            this.bets.set(next, 1);
-        }
+        /*if (this.attempts >= this.getMaxAttempt()) {
+            this.began = false;
+        }*/
 
         return this.bets.entries();
-    }
-
-    nextHotNumbers(n, hotAvg) {
-        if (this.bets.has(n)) {
-            this.bets.delete(n);
-            this.lastResults.push(this.attempts);
-            this.attempts = 1;
-        }
-
-        if (this.bets.size > 0) {
-            const bets = this.bets.entries();
-            const maxAttempts = this.getMaxAttempt(hotAvg);
-
-            for (let [n, attempts] of bets) {
-                if (attempts >= maxAttempts) {
-                    this.bets.delete(n);
-                } else {
-                    this.bets.set(n, attempts + 1);
-                }
-            }
-        }
-
-        let currentList = Array.from(this.bets.entries());
-        
-        const next = this.getHotNumber(currentList.map(([n]) => n));
-
-        if (next !== undefined) {
-            currentList.unshift([next, 1]);
-            currentList = currentList.slice(0, this.numbersCount);
-            this.bets = new Map(currentList);
-        }
-           
-        return this.bets.entries();
-    }
-
-    filterNumbers(ignoreNumbers) {
-        return Array.from(this.orders.entries()).filter(([n]) => {
-            return !this.bets.has(n) && !ignoreNumbers.includes(n);
-        });
     }
 
     getMaxAttempt() {
-        if (this.type === 'cold') {
-            return 24;
-        }
         return 18;
-    }
-
-    getHotNumber(ignoreNumbers = []) {
-        const [first] = ignoreNumbers;
-
-        let maxOffset = 25;
-
-        if (first !== undefined) {
-            maxOffset = getLastOffset(false, first);
-        }
-        
-        const lastNumbers = currentGame.numbers.slice(0, 25).filter((n) => {
-            return !ignoreNumbers.includes(n);
-        });
-
-        let result;
-
-        while (lastNumbers.length) {
-            const n = lastNumbers.shift();
-
-            if (n !== undefined) {
-                const currentOffset = getLastOffset(false, n);
-
-                if (currentOffset > maxOffset) {
-                    break;
-                }
-                
-                if (lastNumbers.includes(n)) {
-                    result = n;
-                    break;
-                }
-            }
-        }
-
-        return result;
-    }
-
-    getColdNumber(ignoreNumbers, coldAvg) {
-        const numbers = this.filterNumbers(ignoreNumbers).map(([n, lastRepeat]) => {
-            if (!lastRepeat) {
-                return;
-            }
-
-            const offset = getLastOffset(false, n);
-
-            if (offset > lastRepeat) {
-                return;
-            }
-
-            return [n, lastRepeat];
-        }).filter(Boolean);
-
-        numbers.sort((a, b) => {
-            const [,ao = 0] = a;
-            const [,bo = 0] = b;
-
-            return bo - ao;
-        });
-
-        let next;
-
-        if (numbers.length) {
-            next = numbers[0][0];
-        }
-
-        return next;
     }
 }
 
 Object.assign(Bets, {
     instance: null,
-    getInstance(numbersCount = 6) {
+    getInstance(numbersCount = 3) {
         if (this.instance === null) {
             this.instance = new Bets(numbersCount);
         }
