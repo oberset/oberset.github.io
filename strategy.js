@@ -18,7 +18,7 @@ function repeatsStrategy() {
     });
 }
 
-function lastNumbersStrategy(numbersCount = 6) {
+function lastNumbersStrategy(numbersCount = 3) {
     const lineStructure = new Line('.strategy-last-numbers');
     const numbersPositionStructure = new Line('.numbers-position');
     const gameRoundsStructure = new Line('.game-rounds-count');
@@ -58,24 +58,6 @@ function lastNumbersStrategy(numbersCount = 6) {
 
         service.start();
     });
-
-    const control = document.querySelector('#choice-type');
-    if (control) {
-        control.addEventListener('change', (event) => {
-            const checked = event.target.checked;
-            service.setType(checked ? 'hot' : 'cold');
-
-            calcLastNumbers(lineStructure, service);
-            nextSpin(gameRoundsStructure, service.rounds);
-            calcNumbersPosition(numbersPositionStructure, service.orders.entries());
-            calcWinAttempts(winAttemptsStructure, service);
-
-            button.classList.remove('neutral');
-            button.classList.add('green');
-            button.style.cursor = 'pointer';
-            button.addEventListener('click', buttonEventListener);
-        });
-    }
 }
 
 function calcLineStrategyScore(lineStructure, prop, isUpdate = false) {
@@ -174,7 +156,7 @@ function calcWinAttempts(lineStructure, service) {
     const template = lineStructure.getFirstItemElement(items);
 
     const element = createItem(template, service.attempts);
-    const maxAttempts = Math.floor(36 / service.numbersCount);
+    const maxAttempts = Math.floor(54 / service.numbersCount);
 
     if (service.attempts > maxAttempts) {
         element.classList.remove('neutral');
