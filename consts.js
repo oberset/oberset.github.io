@@ -14,7 +14,8 @@ const NUMBERS = [
         sector: 'zero',
         neighbors_1: [26, 32],
         neighbors_2: [3, 26, 32, 15],
-        neighbors_3: [35, 3, 26, 32, 15, 19]
+        neighbors_3: [35, 3, 26, 32, 15, 19],
+        next: [32, 15, 19, 4, 21, 2, 25]
     }, {
         number: 32,
         red: true,
@@ -28,7 +29,8 @@ const NUMBERS = [
         sector: 'top-right',
         neighbors_1: [0, 15],
         neighbors_2: [26, 0, 15, 19],
-        neighbors_3: [3, 26, 0, 15, 19, 4]
+        neighbors_3: [3, 26, 0, 15, 19, 4],
+        next: [15, 19, 4, 21, 2, 25, 17]
     }, {
         number: 15,
         red: false,
@@ -42,7 +44,8 @@ const NUMBERS = [
         sector: 'top-right',
         neighbors_1: [32, 19],
         neighbors_2: [0, 32, 19, 4],
-        neighbors_3: [26, 0, 32, 19, 4, 21]
+        neighbors_3: [26, 0, 32, 19, 4, 21],
+        next: [19, 4, 21, 2, 25, 17, 34]
     }, {
         number: 19,
         red: true,
@@ -56,7 +59,8 @@ const NUMBERS = [
         sector: 'top-right',
         neighbors_1: [15, 4],
         neighbors_2: [32, 15, 4, 21],
-        neighbors_3: [0, 32, 15, 4, 21, 2]
+        neighbors_3: [0, 32, 15, 4, 21, 2],
+        next: [4, 21, 2, 25, 17, 34, 6]
     }, {
         number: 4,
         red: false,
@@ -70,7 +74,8 @@ const NUMBERS = [
         sector: 'top-right',
         neighbors_1: [19, 21],
         neighbors_2: [15, 19, 21, 2],
-        neighbors_3: [32, 15, 19, 21, 2, 25]
+        neighbors_3: [32, 15, 19, 21, 2, 25],
+        next: [21, 2, 25, 17, 34, 6, 27]
     }, {
         number: 21,
         red: true,
@@ -84,7 +89,8 @@ const NUMBERS = [
         sector: 'top-right',
         neighbors_1: [4, 2],
         neighbors_2: [19, 4, 2, 25],
-        neighbors_3: [15, 19, 4, 2, 25, 17]
+        neighbors_3: [15, 19, 4, 2, 25, 17],
+        next: [2, 25, 17, 34, 6, 27, 13]
     }, {
         number: 2,
         red: false,
@@ -98,7 +104,8 @@ const NUMBERS = [
         sector: 'top-right',
         neighbors_1: [21, 25],
         neighbors_2: [4, 21, 25, 17],
-        neighbors_3: [19, 4, 21, 25, 17, 34]
+        neighbors_3: [19, 4, 21, 25, 17, 34],
+        next: [25, 17, 34, 6, 27, 13, 36]
     }, {
         number: 25,
         red: true,
@@ -112,7 +119,8 @@ const NUMBERS = [
         sector: 'top-right',
         neighbors_1: [2, 17],
         neighbors_2: [21, 2, 17, 34],
-        neighbors_3: [4, 21, 2, 17, 34, 6]
+        neighbors_3: [4, 21, 2, 17, 34, 6],
+        next: [17, 34, 6, 27, 13, 36, 11]
     }, {
         number: 17,
         red: false,
@@ -126,7 +134,8 @@ const NUMBERS = [
         sector: 'top-right',
         neighbors_1: [25, 34],
         neighbors_2: [2, 25, 34, 6],
-        neighbors_3: [21, 2, 25, 34, 6, 27]
+        neighbors_3: [21, 2, 25, 34, 6, 27],
+        next: [34, 6, 27, 13, 36, 11, 30]
     }, {
         number: 34,
         red: true,
@@ -140,7 +149,8 @@ const NUMBERS = [
         sector: 'top-right',
         neighbors_1: [17, 6],
         neighbors_2: [25, 17, 6, 27],
-        neighbors_3: [2, 25, 17, 6, 27, 13]
+        neighbors_3: [2, 25, 17, 6, 27, 13],
+        next: [6, 27, 13, 36, 11, 30, 8]
     }, {
         number: 6,
         red: false,
@@ -154,7 +164,8 @@ const NUMBERS = [
         sector: 'bottom-right',
         neighbors_1: [34, 27],
         neighbors_2: [17, 34, 27, 13],
-        neighbors_3: [25, 17, 34, 27, 13, 36]
+        neighbors_3: [25, 17, 34, 27, 13, 36],
+        next: [27, 13, 36, 11, 30, 8, 23]
     }, {
         number: 27,
         red: true,
@@ -168,7 +179,8 @@ const NUMBERS = [
         sector: 'bottom-right',
         neighbors_1: [6, 13],
         neighbors_2: [34, 6, 13, 36],
-        neighbors_3: [17, 34, 6, 13, 36, 11]
+        neighbors_3: [17, 34, 6, 13, 36, 11],
+        next: [13, 36, 11, 30, 8, 23, 10]
     }, {
         number: 13,
         red: false,
@@ -182,7 +194,8 @@ const NUMBERS = [
         sector: 'bottom-right',
         neighbors_1: [27, 36],
         neighbors_2: [6, 27, 36, 11],
-        neighbors_3: [34, 6, 27, 36, 11, 30]
+        neighbors_3: [34, 6, 27, 36, 11, 30],
+        next: [36, 11, 30, 8, 23, 10, 5]
     }, {
         number: 36,
         red: true,
@@ -196,7 +209,8 @@ const NUMBERS = [
         sector: 'bottom-right',
         neighbors_1: [13, 11],
         neighbors_2: [27, 13, 11, 30],
-        neighbors_3: [6, 27, 13, 11, 30, 8]
+        neighbors_3: [6, 27, 13, 11, 30, 8],
+        next: [11, 30, 8, 23, 10, 5, 24]
     }, {
         number: 11,
         red: false,
@@ -210,7 +224,8 @@ const NUMBERS = [
         sector: 'bottom-right',
         neighbors_1: [36, 30],
         neighbors_2: [13, 36, 30, 8],
-        neighbors_3: [27, 13, 36, 30, 8, 23]
+        neighbors_3: [27, 13, 36, 30, 8, 23],
+        next: [30, 8, 23, 10, 5, 24, 16]
     }, {
         number: 30,
         red: true,
@@ -224,7 +239,8 @@ const NUMBERS = [
         sector: 'bottom-right',
         neighbors_1: [11, 8],
         neighbors_2: [36, 11, 8, 23],
-        neighbors_3: [13, 36, 11, 8, 23, 10]
+        neighbors_3: [13, 36, 11, 8, 23, 10],
+        next: [8, 23, 10, 5, 24, 16, 33]
     }, {
         number: 8,
         red: false,
@@ -238,7 +254,8 @@ const NUMBERS = [
         sector: 'bottom-right',
         neighbors_1: [30, 23],
         neighbors_2: [11, 30, 23, 10],
-        neighbors_3: [36, 11, 30, 23, 10, 5]
+        neighbors_3: [36, 11, 30, 23, 10, 5],
+        next: [23, 10, 5, 24, 16, 33, 1]
     }, {
         number: 23,
         red: true,
@@ -252,7 +269,8 @@ const NUMBERS = [
         sector: 'bottom-right',
         neighbors_1: [8, 10],
         neighbors_2: [30, 8, 10, 5],
-        neighbors_3: [11, 30, 8, 10, 5, 24]
+        neighbors_3: [11, 30, 8, 10, 5, 24],
+        next: [10, 5, 24, 16, 33, 1, 20]
     }, {
         number: 10,
         red: false,
@@ -266,7 +284,8 @@ const NUMBERS = [
         sector: 'bottom-right',
         neighbors_1: [23, 5],
         neighbors_2: [8, 23, 5, 24],
-        neighbors_3: [30, 8, 23, 5, 24, 16]
+        neighbors_3: [30, 8, 23, 5, 24, 16],
+        next: [5, 24, 16, 33, 1, 20, 14]
     }, {
         number: 5,
         red: true,
@@ -280,7 +299,8 @@ const NUMBERS = [
         sector: 'bottom-left',
         neighbors_1: [10, 24],
         neighbors_2: [23, 10, 24, 16],
-        neighbors_3: [8, 23, 10, 24, 16, 33]
+        neighbors_3: [8, 23, 10, 24, 16, 33],
+        next: [24, 16, 33, 1, 20, 14, 31]
     }, {
         number: 24,
         red: false,
@@ -294,7 +314,8 @@ const NUMBERS = [
         sector: 'bottom-left',
         neighbors_1: [5, 16],
         neighbors_2: [10, 5, 16, 33],
-        neighbors_3: [23, 10, 5, 16, 33, 1]
+        neighbors_3: [23, 10, 5, 16, 33, 1],
+        next: [16, 33, 1, 20, 14, 31, 9]
     }, {
         number: 16,
         red: true,
@@ -308,7 +329,8 @@ const NUMBERS = [
         sector: 'bottom-left',
         neighbors_1: [24, 33],
         neighbors_2: [5, 25, 33, 1],
-        neighbors_3: [10, 5, 25, 33, 1, 20]
+        neighbors_3: [10, 5, 25, 33, 1, 20],
+        next: [33, 1, 20, 14, 31, 9, 22]
     }, {
         number: 33,
         red: false,
@@ -322,7 +344,8 @@ const NUMBERS = [
         sector: 'bottom-left',
         neighbors_1: [16, 1],
         neighbors_2: [24, 16, 1, 20],
-        neighbors_3: [5, 24, 16, 1, 20, 14]
+        neighbors_3: [5, 24, 16, 1, 20, 14],
+        next: [1, 20, 14, 31, 9, 22, 18]
     }, {
         number: 1,
         red: true,
@@ -336,7 +359,8 @@ const NUMBERS = [
         sector: 'bottom-left',
         neighbors_1: [33, 20],
         neighbors_2: [16, 33, 20, 14],
-        neighbors_3: [24, 16, 33, 20, 14, 31]
+        neighbors_3: [24, 16, 33, 20, 14, 31],
+        next: [20, 14, 31, 9, 22, 18, 29]
     }, {
         number: 20,
         red: false,
@@ -350,7 +374,8 @@ const NUMBERS = [
         sector: 'bottom-left',
         neighbors_1: [1, 14],
         neighbors_2: [33, 1, 14, 31],
-        neighbors_3: [16, 33, 1, 14, 31, 9]
+        neighbors_3: [16, 33, 1, 14, 31, 9],
+        next: [14, 31, 9, 22, 18, 29, 7]
     }, {
         number: 14,
         red: true,
@@ -364,7 +389,8 @@ const NUMBERS = [
         sector: 'bottom-left',
         neighbors_1: [20, 31],
         neighbors_2: [1, 20, 31, 9],
-        neighbors_3: [33, 1, 20, 31, 9, 22]
+        neighbors_3: [33, 1, 20, 31, 9, 22],
+        next: [31, 9, 22, 18, 29, 7, 28]
     }, {
         number: 31,
         red: false,
@@ -378,7 +404,8 @@ const NUMBERS = [
         sector: 'bottom-left',
         neighbors_1: [14, 9],
         neighbors_2: [20, 14, 9, 22],
-        neighbors_3: [1, 20, 14, 9, 22, 18]
+        neighbors_3: [1, 20, 14, 9, 22, 18],
+        next: [9, 22, 18, 29, 7, 28, 12]
     }, {
         number: 9,
         red: true,
@@ -392,7 +419,8 @@ const NUMBERS = [
         sector: 'bottom-left',
         neighbors_1: [31, 22],
         neighbors_2: [14, 31, 22, 18],
-        neighbors_3: [20, 14, 31, 22, 18, 29]
+        neighbors_3: [20, 14, 31, 22, 18, 29],
+        next: [22, 18, 29, 7, 28, 12, 35]
     }, {
         number: 22,
         red: false,
@@ -406,7 +434,8 @@ const NUMBERS = [
         sector: 'top-left',
         neighbors_1: [9, 18],
         neighbors_2: [31, 9, 18, 29],
-        neighbors_3: [14, 31, 9, 18, 29, 7]
+        neighbors_3: [14, 31, 9, 18, 29, 7],
+        next: [18, 29, 7, 28, 12, 35, 3]
     }, {
         number: 18,
         red: true,
@@ -420,7 +449,8 @@ const NUMBERS = [
         sector: 'top-left',
         neighbors_1: [22, 29],
         neighbors_2: [9, 22, 29, 7],
-        neighbors_3: [31, 9, 22, 29, 7, 28]
+        neighbors_3: [31, 9, 22, 29, 7, 28],
+        next: [29, 7, 28, 12, 35, 3, 26]
     }, {
         number: 29,
         red: false,
@@ -434,7 +464,8 @@ const NUMBERS = [
         sector: 'top-left',
         neighbors_1: [18, 7],
         neighbors_2: [22, 18, 7, 28],
-        neighbors_3: [9, 22, 18, 7, 28, 12]
+        neighbors_3: [9, 22, 18, 7, 28, 12],
+        next: [7, 28, 12, 35, 3, 26, 0]
     }, {
         number: 7,
         red: true,
@@ -448,7 +479,8 @@ const NUMBERS = [
         sector: 'top-left',
         neighbors_1: [29, 28],
         neighbors_2: [18, 29, 28, 12],
-        neighbors_3: [22, 18, 29, 28, 12, 35]
+        neighbors_3: [22, 18, 29, 28, 12, 35],
+        next: [28, 12, 35, 3, 26, 0, 32]
     }, {
         number: 28,
         red: false,
@@ -462,7 +494,8 @@ const NUMBERS = [
         sector: 'top-left',
         neighbors_1: [7, 12],
         neighbors_2: [29, 7, 12, 35],
-        neighbors_3: [18, 29, 7, 12, 35, 3]
+        neighbors_3: [18, 29, 7, 12, 35, 3],
+        next: [12, 35, 3, 26, 0, 32, 15]
     }, {
         number: 12,
         red: true,
@@ -476,7 +509,8 @@ const NUMBERS = [
         sector: 'top-left',
         neighbors_1: [28, 35],
         neighbors_2: [7, 28, 35, 3],
-        neighbors_3: [29, 7, 28, 35, 3, 26]
+        neighbors_3: [29, 7, 28, 35, 3, 26],
+        next: [35, 3, 26, 0, 32, 15, 19]
     }, {
         number: 35,
         red: false,
@@ -490,7 +524,8 @@ const NUMBERS = [
         sector: 'top-left',
         neighbors_1: [12, 3],
         neighbors_2: [28, 12, 3, 26],
-        neighbors_3: [7, 28, 12, 3, 26, 0]
+        neighbors_3: [7, 28, 12, 3, 26, 0],
+        next: [3, 26, 0, 32, 15, 19, 4]
     }, {
         number: 3,
         red: true,
@@ -504,7 +539,8 @@ const NUMBERS = [
         sector: 'top-left',
         neighbors_1: [35, 26],
         neighbors_2: [12, 35, 26, 0],
-        neighbors_3: [28, 12, 35, 26, 0, 32]
+        neighbors_3: [28, 12, 35, 26, 0, 32],
+        next: [26, 0, 32, 15, 19, 4, 21]
     }, {
         number: 26,
         red: false,
@@ -518,7 +554,8 @@ const NUMBERS = [
         sector: 'top-left',
         neighbors_1: [3, 0],
         neighbors_2: [35, 3, 0, 32],
-        neighbors_3: [12, 35, 3, 0, 32, 15]
+        neighbors_3: [12, 35, 3, 0, 32, 15],
+        next: [0, 32, 15, 19, 4, 21, 2]
     }
 ];
 
