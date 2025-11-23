@@ -35,120 +35,356 @@ class Line {
     }
 
     updateItems(itemsElement, fragment) {
-        while (itemsElement.lastElementChild) {
-            itemsElement.removeChild(itemsElement.lastElementChild);
+        const item = this.getFirstItemElement(itemsElement);
+        itemsElement.replaceChild(fragment, item);
+    }
+
+    setItems(itemsElement, list) {
+        const fragment = document.createDocumentFragment();
+        for (let item of list) {
+            fragment.appendChild(item);
         }
+        itemsElement.innerHTML = '';
         itemsElement.appendChild(fragment);
     }
 }
 
+class SelectedNumbers {
+    static DEFAULT_ATTEMPTS = 35;
+    static instance = new SelectedNumbers();
+
+    constructor() {
+        this.selected = new Set();
+        this.attemptsCount = new Map();
+        this.maxAttempts = SelectedNumbers.DEFAULT_ATTEMPTS;
+        this.frozen = false;
+    }
+
+    freeze() {
+        this.frozen = true;
+    }
+
+    defrost() {
+        this.frozen = false;
+    }
+
+    addSelectedNumber(number) {
+        this.selected.add(Number(number));
+
+        if (!this.attemptsCount.has(number)) {
+            this.attemptsCount.set(number, this.maxAttempts);
+        }
+    }
+
+    removeSelectedNumber(number) {
+        this.selected.delete(number);
+        this.attemptsCount.delete(number);
+    }
+
+    updateSelectedNumbers() {
+        if (this.frozen) {
+            return;
+        }
+        for (let number of this.selected) {
+            const attempts = this.attemptsCount.get(number);
+            this.attemptsCount.set(number, attempts - 1);
+        }
+        emit('change_selected_numbers');
+    }
+}
+
 class Bets {
-    constructor(numbersCount = 6) {
+    static SETS = [
+        [17, 20, 31, 34],
+        [5, 16, 25, 32],
+        [3, 7, 12, 21],
+        [13, 24, 26, 27],
+        [1, 9, 12, 14],
+        [5, 8, 11, 33],
+        [22, 28, 29, 35],
+        [12, 23, 35, 36],
+        [4, 7, 11, 21],
+        [2, 4, 7, 15],
+        [5, 13, 16, 17, 22, 24, 25, 32, 34],
+        [1, 6, 9, 14, 17, 20, 25, 31, 34],
+        [32, 15, 19, 4],
+        [21, 2, 25, 17],
+        [34, 6, 27, 13],
+        [36, 11, 30, 8],
+        [23, 10, 5, 24],
+        [16, 33, 1, 20],
+        [14, 31, 9, 22],
+        [18, 29, 7, 28],
+        [12, 35, 3, 26]
+    ];
+
+    constructor() {
         this.orders = new Map();
-        this.bets = new Set();
-        this.numbersCount = numbersCount;
         this.rounds = 0;
         this.began = false;
-        this.attempts = 0;
-        console.log('Numbers', this.numbersCount);
+        this.active = false;
+        this.result = [];
+        this.bets = Bets.SETS[0];
+        this.absoluteBalance = 0;
+        this.relativeBalance = 0;
+        this.lastPointsBalance = 0;
+        this.depth = 300;
+        this.lastPeriod = 36;
+        this.stopPoint = 0;
+        this.maxWin = 0;
+        this.winHappened = false;
     }
 
     start() {
-        this.began = true;
-        this.rounds = 0;
-        this.attempts = 0;
         console.log('start');
+
+        if (!this.began) {
+            this.began = true;
+        }
+
+        this.maxWin = 0;
+        this.stopPoint = this.getStopPoint();
+
+        this.active = true;
+    }
+
+    stop() {
+        console.log('stop');
+        this.stopPoint = 0;
+        this.maxWin = 0;
+        this.rounds = 0;
+        this.active = false;
+        this.relativeBalance = 0;
     }
 
     clear() {
         this.orders = new Map();
-        this.bets = new Set();
         this.rounds = 0;
         this.began = false;
-        this.attempts = 0;
+        this.bets = [];
+        this.result = [];
+        this.absoluteBalance = 0;
+        this.relativeBalance = 0;
+        this.lastPointsBalance = 0;
+        this.bet = 1;
+        this.stopPoint = 0;
+        this.maxWin = 0;
+        this.winHappened = false;
+        console.log('clear');
+    }
+
+    update(bets) {
+        this.clear();
+        this.bets = bets;
+
+        SelectedNumbers.instance.freeze();
+
+        const numbers = getNumbers();
+
+        clearNumbers();
+
+        emit('clear');
+
+        numbers.reverse();
+
+        for (let item of numbers) {
+            addNumber(item.number)
+        }
+
+        SelectedNumbers.instance.defrost();
     }
 
     addPosition(n) {
         const offset = getLastOffset();
         this.orders.set(n, offset);
 
-        if (this.began) {
+        if (this.active) {
             this.rounds += 1;
-            this.attempts += 1;
         }
     }
 
     next(n) {
         this.addPosition(n);
 
-        if (!this.began) {
-            const result = {};
-            const numbers = currentGame.numbers;
+        this.winHappened = this.bets.includes(n);
 
-            NUMBERS.forEach((item, index) => {
-                result[item.number] = 0;
-                const neighbors = [item.number, ...item.neighbors_1];
-                for (let n of neighbors) {
-                    const equals = numbers.filter((curr) => curr === n);
-                    if (equals.length) {
-                        result[item.number] += equals.length;
-                    }
-                }
-            });
-
-            const orders = Object.entries(result).reduce((acc, [n, count]) => {
-                if (count) {
-                    acc.push({
-                        number: n,
-                        count
-                    })
-                }
-                return acc;
-            }, []);
-
-            orders.sort((a, b) => {
-                return b.count - a.count;
-            });
-
-            const [max] = orders;
-            console.log('max', max);
-
-            const info = getNumberInfo(+max.number);
-            const [n1, n2] = info.neighbors_1;
-
-            this.bets = new Set([n1, max.number, n2]);
-
-            return [];
-        }
-
-        if (this.bets.has(n)) {
-            this.attempts = 1;
-        }
-
-        /*if (this.attempts >= this.getMaxAttempt()) {
-            this.began = false;
-        }*/
-
-        return this.bets.entries();
+        this.changeResult();
     }
 
-    getMaxAttempt() {
-        return 18;
+    changeResult() {
+        this.absoluteBalance = this.calcBalance();
+
+        this.lastPointsBalance = this.calcPointsDistance();
+
+        const diff = this.calcRelativeBalance();
+
+        this.relativeBalance += diff;
+
+        this.result.unshift([
+            this.absoluteBalance,
+            this.lastPointsBalance,
+            this.relativeBalance,
+            this.winHappened
+        ]);
+
+        this.result = this.result.slice(0, this.depth);
+
+        if (this.relativeBalance > this.maxWin) {
+            this.maxWin = this.relativeBalance;
+        }
+
+        if (this.maxWin > 0) {
+            this.stopPoint = this.getStopPoint() + this.maxWin;
+        }
+    }
+
+    calcPointsDistance() {
+        const minPoints = 3;
+
+        let distance = 0;
+        let points = 0;
+
+        const [lastNumbers] = getNumbers(this.depth);
+
+        if (!lastNumbers) {
+            return 0;
+        }
+
+        for (let n of lastNumbers) {
+            distance += 1;
+
+            if (this.bets.includes(n.number)) {
+                points += 1;
+            }
+
+            if (points === minPoints) {
+                break;
+            }
+        }
+
+        if (points > 1) {
+            const wins = Math.floor(36 / this.bets.length) * (points - (points === minPoints ? 1 : 0));
+            const attempts = distance - (points === minPoints ? 1 : 0);
+            return wins - attempts;
+        }
+
+        return 0;
+    }
+
+    calcLastBalance() {
+        const minPoints = 4;
+        let balance = 0;
+        let points = 0;
+
+        const [lastNumbers] = getNumbers(this.depth);
+
+        if (!lastNumbers) {
+            return 0;
+        }
+
+        for (let n of lastNumbers) {
+            if (this.bets.includes(n.number)) {
+                balance += this.getWin();
+                points += 1;
+            } else {
+                balance -= 1;
+            }
+
+            if (points >= minPoints) {
+                break;
+            }
+        }
+
+        return balance - this.getWin();
+    }
+
+    calcRelativeBalance() {
+        if (!this.rounds) {
+            return 0;
+        }
+
+        if (!this.active) {
+            return 0;
+        }
+
+        const [lastNumbers] = getNumbers(this.rounds);
+
+        if (!lastNumbers) {
+            return 0;
+        }
+
+        const prev = this.relativeBalance;
+        const current = this.calcBalance(lastNumbers, this.bet);
+
+        return current - prev;
+    }
+
+    calcBalance(numbers, bet = 1) {
+        const list = numbers || getNumbers();
+
+        let balance = 0;
+
+        list.map((item) => item.number).forEach((n) => {
+            if (this.bets.includes(n)) {
+                balance += this.getWin(bet);
+            } else {
+                balance -= bet;
+            }
+        });
+
+        return balance;
+    }
+
+    getWin(bet = 1) {
+        return Math.floor((36 * bet) / this.bets.length) - bet;
+    }
+
+    getStopPoint() {
+        return -(Math.floor(80 / this.bets.length));
+    }
+
+    getHot() {
+        const minCompares = 3;
+        const minDiffs = 3;
+
+        let result = [];
+
+        const numbers = getNumbers();
+
+        for (let i = 0; i < Bets.SETS.length; i++) {
+            const set = Bets.SETS[i];
+            let compares = 0;
+            let uniqueNumbers = new Set();
+
+            for (let n of numbers) {
+                if (set.includes(n.number)) {
+                    uniqueNumbers.add(n.number);
+                    compares += 1;
+                }
+            }
+
+            if (uniqueNumbers.size < minDiffs) {
+                continue;
+            }
+
+            if (compares < minCompares) {
+                continue;
+            }
+
+            result = set;
+            break;
+        }
+
+        this.bets = result;
+
+        return this.bets;
     }
 }
 
-Object.assign(Bets, {
-    instance: null,
-    getInstance(numbersCount = 3) {
-        if (this.instance === null) {
-            this.instance = new Bets(numbersCount);
-        }
-        return this.instance;
-    }
-});
-
 function line() {
     const lineStructure = new Line('.line');
+
+    let lastElement;
 
     addEventListener('add_number', () => {
         const [n] = currentGame.numbers;
@@ -160,6 +396,13 @@ function line() {
 
         const element = lineStructure.createItem(template, numberInfo);
 
+        element.addEventListener('click', () => {
+            SelectedNumbers.instance.addSelectedNumber(n);
+            emit('change_selected_numbers');
+        });
+
+        lastElement = element;
+
         if (currentGame.numbers.length > 1) {
             lineStructure.addItem(items, element);
         } else {
@@ -168,21 +411,33 @@ function line() {
     });
 
     addEventListener('delete_number', () => {
+        if (lastElement) {
+            if (currentGame.numbers.length > 0) {
+                const group = lineStructure.getFirstItemsGroupElement();
+                const items = lineStructure.getItemsElement(group);
+
+                lastElement = lineStructure.getFirstItemElement(items);
+                items.removeChild(lastElement);
+            } else {
+                lastElement = null;
+            }
+        }
+    });
+
+    addEventListener('clear', () => {
         const group = lineStructure.getFirstItemsGroupElement();
         const items = lineStructure.getItemsElement(group);
-        const template = lineStructure.getFirstItemElement(items);
 
-        const element = createItem(template, 'N');
-        element.classList.remove('green', 'red', 'black');
+        const element = lineStructure.getFirstItemElement(items);
 
-        lineStructure.updateItems(items, element);
+        items.innerHTML = '';
+
+        lineStructure.addItem(items, element);
     });
 }
 
-function getLastOffset(calcRepeatsOnly = true, forNumber = undefined) {
-    const [last, ...prev] = currentGame.numbers;
-    const current = forNumber !== undefined ? forNumber : last;
-    const list = forNumber !== undefined ? currentGame.numbers : prev;
+function getLastOffset(calcRepeatsOnly = true) {
+    const [current, ...list] = currentGame.numbers;
 
     let value;
 
@@ -202,9 +457,9 @@ function getLastOffset(calcRepeatsOnly = true, forNumber = undefined) {
     return value;
 }
 
-function getAvgHotColdRepeats(repeats) {
+function getAvgRepeats(repeats) {
     const hot = [];
-    const cold = [];
+    const all = [];
 
     const numbers = currentGame.numbers.filter((n, i) => {
         return currentGame.numbers.findIndex((current, index) => current === n && index !== i) !== -1;
@@ -215,9 +470,8 @@ function getAvgHotColdRepeats(repeats) {
     for (let [, offset] of list) {
         if (offset < 37) {
             hot.push(offset);
-        } else {
-            cold.push(offset);
         }
+        all.push(offset);
     }
 
     const hotSum = hot.reduce((acc, offset) => {
@@ -225,13 +479,13 @@ function getAvgHotColdRepeats(repeats) {
         return acc;
     }, 0);
 
-    const coldSum = cold.reduce((acc, offset) => {
+    const allSum = all.reduce((acc, offset) => {
         acc += offset;
         return acc;
     }, 0);
 
     const hotAvg = hotSum > 0 ? Math.round(hotSum / hot.length) : 0;
-    const coldAvg = coldSum > 0 ? Math.round(coldSum / cold.length) : 0;
+    const allAvg = allSum > 0 ? Math.round(allSum / all.length) : 0;
 
-    return [hotAvg, coldAvg];
+    return [hotAvg, allAvg];
 }
