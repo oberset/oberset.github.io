@@ -23,28 +23,18 @@ function addNumber(number) {
 }
 
 function deleteLastNumber() {
-    emit('delete_number');
-
     currentGame.numbers.shift();
-    const list = currentGame.numbers.reverse();
-    currentGame.numbers = [];
-
-    addNumbers(list);
+    emit('delete_number');
 }
 
 function addNumbers(list) {
-    const next = (items) => {
-        if (!items.length) {
-            return;
-        }
-        const [current, ...others] = items;
-        setTimeout(() => {
-            addNumber(current);
-            next(others);
-        }, 50);
-    };
+    for (let item of list) {
+        addNumber(item);
+    }
+}
 
-    next(list);
+function clearNumbers() {
+    currentGame.numbers = [];
 }
 
 function deleteLast() {
