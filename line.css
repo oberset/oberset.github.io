@@ -21,3 +21,28 @@
 .blue {
     background-color: lightblue;
 }
+
+.cold {
+    background-color: antiquewhite;
+}
+
+.negative-1 {
+    background-color: burlywood;
+}
+
+.positive-2 {
+    background-color: darkkhaki;
+}
+
+.positive-3 {
+    background-color: darkseagreen;
+}
+
+.positive-4 {
+    background-color: cadetblue;
+}
+
+.bold {
+    font-weight: bold;
+    border: 2px solid #343434;
+}
