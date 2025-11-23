@@ -61,7 +61,7 @@ function selectedNumbers() {
             element.textContent = `${number} > ${SelectedNumbers.instance.attemptsCount.get(number)}`;
             element.classList.add('selected_number');
 
-            element.addEventListener('dblclick', () => {
+            element.addEventListener('click', () => {
                 container.removeChild(element);
                 SelectedNumbers.instance.removeSelectedNumber(number);
             });
