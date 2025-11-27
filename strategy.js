@@ -32,25 +32,26 @@ function repeatsStrategy() {
     });
 }
 
-function selectedNumbers() {
-    const input = document.querySelector('.selected_numbers_repeats input');
-    const container = document.querySelector('.selected_numbers_container');
+function selectedFirstOneNumbers() {
+    const root = document.querySelector('.first_one_numbers');
+    const input = root.querySelector('.selected_numbers_repeats input');
+    const container = root.querySelector('.selected_numbers_container');
 
     input.addEventListener('blur', (e) => {
         const value = parseInt(e.currentTarget.value, 10);
         if (value > 0) {
-            SelectedNumbers.instance.maxAttempts = value;
+            SelectedNumbers.instance.firstOneMaxAttempts = value;
         } else {
-            SelectedNumbers.instance.maxAttempts = SelectedNumbers.DEFAULT_ATTEMPTS;
+            SelectedNumbers.instance.firstOneMaxAttempts = SelectedNumbers.DEFAULT_ATTEMPTS;
         }
     });
 
     addEventListener('add_number', () => {
-        SelectedNumbers.instance.updateSelectedNumbers();
+        SelectedNumbers.instance.updateFirstOneNumbers();
     });
 
-    addEventListener('change_selected_numbers', () => {
-        const selected = Array.from(SelectedNumbers.instance.selected.values()).sort((a, b) => {
+    addEventListener('change_first_one_numbers', () => {
+        const selected = Array.from(SelectedNumbers.instance.firstOne.values()).sort((a, b) => {
             return a - b;
         });
         const fragment = document.createDocumentFragment();
@@ -58,12 +59,57 @@ function selectedNumbers() {
         for (let number of selected) {
             const element = document.createElement('div');
 
-            element.textContent = `${number} > ${SelectedNumbers.instance.attemptsCount.get(number)}`;
+            element.textContent = `${number} > ${SelectedNumbers.instance.firstOneAttemptsCount.get(number)}`;
             element.classList.add('selected_number');
 
-            element.addEventListener('click', () => {
+            element.addEventListener('dblclick', () => {
                 container.removeChild(element);
-                SelectedNumbers.instance.removeSelectedNumber(number);
+                SelectedNumbers.instance.removeFirstOneNumber(number);
+                SelectedNumbers.instance.addSecondOneNumber(number);
+                SelectedNumbers.instance.updateSecondOneNumbers(false);
+            });
+
+            fragment.appendChild(element);
+        }
+
+        container.innerHTML = '';
+        container.appendChild(fragment);
+    });
+}
+
+function selectedSecondOneNumbers() {
+    const root = document.querySelector('.second_one_numbers');
+    const input = root.querySelector('.selected_numbers_repeats input');
+    const container = root.querySelector('.selected_numbers_container');
+
+    input.addEventListener('blur', (e) => {
+        const value = parseInt(e.currentTarget.value, 10);
+        if (value > 0) {
+            SelectedNumbers.instance.secondOneMaxAttempts = value;
+        } else {
+            SelectedNumbers.instance.secondOneMaxAttempts = SelectedNumbers.DEFAULT_ATTEMPTS;
+        }
+    });
+
+    addEventListener('add_number', () => {
+        SelectedNumbers.instance.updateSecondOneNumbers();
+    });
+
+    addEventListener('change_second_one_numbers', () => {
+        const selected = Array.from(SelectedNumbers.instance.secondOne.values()).sort((a, b) => {
+            return a - b;
+        });
+        const fragment = document.createDocumentFragment();
+
+        for (let number of selected) {
+            const element = document.createElement('div');
+
+            element.textContent = `${number} > ${SelectedNumbers.instance.secondOneAttemptsCount.get(number)}`;
+            element.classList.add('selected_number');
+
+            element.addEventListener('dblclick', () => {
+                container.removeChild(element);
+                SelectedNumbers.instance.removeSecondOneNumber(number);
             });
 
             fragment.appendChild(element);
