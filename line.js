@@ -54,9 +54,14 @@ class SelectedNumbers {
     static instance = new SelectedNumbers();
 
     constructor() {
-        this.selected = new Set();
-        this.attemptsCount = new Map();
-        this.maxAttempts = SelectedNumbers.DEFAULT_ATTEMPTS;
+        this.firstOne = new Set();
+        this.firstOneAttemptsCount = new Map();
+        this.firstOneMaxAttempts = SelectedNumbers.DEFAULT_ATTEMPTS;
+
+        this.secondOne = new Set();
+        this.secondOneAttemptsCount = new Map();
+        this.secondOneMaxAttempts = SelectedNumbers.DEFAULT_ATTEMPTS;
+
         this.frozen = false;
     }
 
@@ -68,28 +73,57 @@ class SelectedNumbers {
         this.frozen = false;
     }
 
-    addSelectedNumber(number) {
-        this.selected.add(Number(number));
+    addFirstOneNumber(number) {
+        this.firstOne.add(Number(number));
 
-        if (!this.attemptsCount.has(number)) {
-            this.attemptsCount.set(number, this.maxAttempts);
+        if (!this.firstOneAttemptsCount.has(number)) {
+            this.firstOneAttemptsCount.set(number, this.firstOneMaxAttempts);
         }
     }
 
-    removeSelectedNumber(number) {
-        this.selected.delete(number);
-        this.attemptsCount.delete(number);
+    removeFirstOneNumber(number) {
+        this.firstOne.delete(number);
+        this.firstOneAttemptsCount.delete(number);
     }
 
-    updateSelectedNumbers() {
+    addSecondOneNumber(number) {
+        this.secondOne.add(Number(number));
+
+        if (!this.secondOneAttemptsCount.has(number)) {
+            this.secondOneAttemptsCount.set(number, this.secondOneMaxAttempts);
+        }
+    }
+
+    removeSecondOneNumber(number) {
+        this.secondOne.delete(number);
+        this.secondOneAttemptsCount.delete(number);
+    }
+
+    updateFirstOneNumbers() {
         if (this.frozen) {
             return;
         }
-        for (let number of this.selected) {
-            const attempts = this.attemptsCount.get(number);
-            this.attemptsCount.set(number, attempts - 1);
+        for (let number of this.firstOne) {
+            const attempts = this.firstOneAttemptsCount.get(number);
+            this.firstOneAttemptsCount.set(number, attempts - 1);
         }
-        emit('change_selected_numbers');
+
+        emit('change_first_one_numbers');
+    }
+
+    updateSecondOneNumbers(recalc = true) {
+        if (this.frozen) {
+            return;
+        }
+
+        if (recalc) {
+            for (let number of this.secondOne) {
+                const attempts = this.secondOneAttemptsCount.get(number);
+                this.secondOneAttemptsCount.set(number, attempts - 1);
+            }
+        }
+
+        emit('change_second_one_numbers');
     }
 }
 
@@ -397,8 +431,8 @@ function line() {
         const element = lineStructure.createItem(template, numberInfo);
 
         element.addEventListener('click', () => {
-            SelectedNumbers.instance.addSelectedNumber(n);
-            emit('change_selected_numbers');
+            SelectedNumbers.instance.addFirstOneNumber(n);
+            emit('change_first_one_numbers');
         });
 
         lastElement = element;
