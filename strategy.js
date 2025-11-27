@@ -62,7 +62,7 @@ function selectedFirstOneNumbers() {
             element.textContent = `${number} > ${SelectedNumbers.instance.firstOneAttemptsCount.get(number)}`;
             element.classList.add('selected_number');
 
-            element.addEventListener('dblclick', () => {
+            element.addEventListener('click', () => {
                 container.removeChild(element);
                 SelectedNumbers.instance.removeFirstOneNumber(number);
                 SelectedNumbers.instance.addSecondOneNumber(number);
@@ -107,7 +107,7 @@ function selectedSecondOneNumbers() {
             element.textContent = `${number} > ${SelectedNumbers.instance.secondOneAttemptsCount.get(number)}`;
             element.classList.add('selected_number');
 
-            element.addEventListener('dblclick', () => {
+            element.addEventListener('click', () => {
                 container.removeChild(element);
                 SelectedNumbers.instance.removeSecondOneNumber(number);
             });
