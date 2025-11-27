@@ -158,7 +158,14 @@
         </div>
     </div>
 
-    <div>
+    <div class="first_one_numbers">
+        <div class="selected_numbers_repeats">
+            <input type="text" />
+        </div>
+        <div class="selected_numbers_container"></div>
+    </div>
+
+    <div class="second_one_numbers">
         <div class="selected_numbers_repeats">
             <input type="text" />
         </div>
@@ -356,14 +363,12 @@
 
     table();
     line();
-    // lineStrategy();
-    // parityStrategy();
-    // bigNumbersStrategy();
     repeatsStrategy();
     lastNumbersStrategy();
     spinsCount();
     rollbackList();
-    selectedNumbers();
+    selectedFirstOneNumbers();
+    selectedSecondOneNumbers();
 
     startGame(list);
 </script>
