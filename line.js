@@ -366,7 +366,7 @@ class Bets {
 
         list.map((item) => item.number).forEach((n) => {
             if (bets.includes(n)) {
-                balance += 36;
+                balance += (36 - bets.length);
             } else {
                 balance -= bets.length;
             }
