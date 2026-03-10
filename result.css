@@ -14,16 +14,20 @@
     box-sizing: border-box;
     display: flex;
     justify-content: space-between;
-    width: 100px;
+    width: 126px;
     height: auto;
 }
 
 .result .number {
     box-sizing: border-box;
-    width: 32px;
+    width: 48px;
     height: 32px;
     color: #343434;
     padding: 2px 8px;
+}
+
+.result .number.empty {
+    width: 24px;
 }
 
 .period {
