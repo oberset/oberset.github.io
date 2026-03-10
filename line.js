@@ -129,27 +129,16 @@ class SelectedNumbers {
 
 class Bets {
     static SETS = [
-        [17, 20, 31, 34],
-        [5, 16, 25, 32],
-        [3, 7, 12, 21],
-        [13, 24, 26, 27],
-        [1, 9, 12, 14],
-        [5, 8, 11, 33],
-        [22, 28, 29, 35],
-        [12, 23, 35, 36],
-        [4, 7, 11, 21],
-        [2, 4, 7, 15],
-        [5, 13, 16, 17, 22, 24, 25, 32, 34],
-        [1, 6, 9, 14, 17, 20, 25, 31, 34],
-        [32, 15, 19, 4],
-        [21, 2, 25, 17],
-        [34, 6, 27, 13],
-        [36, 11, 30, 8],
-        [23, 10, 5, 24],
-        [16, 33, 1, 20],
-        [14, 31, 9, 22],
-        [18, 29, 7, 28],
-        [12, 35, 3, 26]
+        [Infinity],
+        [2,4],
+        [6,9],
+        [17,20],
+        [25,32],
+        [31,34],
+        [24,27],
+        [13,36],
+        [23,26],
+        [12,21]
     ];
 
     constructor() {
@@ -160,57 +149,70 @@ class Bets {
         this.result = [];
         this.bets = Bets.SETS[0];
         this.absoluteBalance = 0;
-        this.relativeBalance = 0;
-        this.lastPointsBalance = 0;
-        this.depth = 300;
-        this.lastPeriod = 36;
-        this.stopPoint = 0;
-        this.maxWin = 0;
+        this.lastRecommendedBalance = 0;
+        this.depth = 750;
         this.winHappened = false;
+        this.isPositive = undefined;
+        this.lastSelected = [];
+        this.lastRecommended = [];
+        this.queue = [];
+        this.offset = 0;
+        this.limit = 4;
+        this.lastBalance = 0;
     }
 
     start() {
         console.log('start');
-
-        if (!this.began) {
-            this.began = true;
-        }
-
-        this.maxWin = 0;
-        this.stopPoint = this.getStopPoint();
-
+        this.began = true;
+        this.update(this.bets);
         this.active = true;
     }
 
     stop() {
         console.log('stop');
-        this.stopPoint = 0;
-        this.maxWin = 0;
         this.rounds = 0;
         this.active = false;
-        this.relativeBalance = 0;
+        this.began = false;
+        this.update(this.bets);
     }
 
     clear() {
         this.orders = new Map();
         this.rounds = 0;
-        this.began = false;
         this.bets = [];
         this.result = [];
         this.absoluteBalance = 0;
-        this.relativeBalance = 0;
-        this.lastPointsBalance = 0;
-        this.bet = 1;
-        this.stopPoint = 0;
-        this.maxWin = 0;
+        this.lastRecommendedBalance = 0;
         this.winHappened = false;
+        this.isPositive = undefined;
+        this.lastSelected = [];
+        this.lastRecommended = [];
+        this.queue = [];
+        this.lastBalance = 0;
         console.log('clear');
     }
 
-    update(bets) {
-        this.clear();
-        this.bets = bets;
+    changeOffset(offset, limit) {
+        console.log('offset', offset);
+        console.log('limit', limit);
 
+        this.absoluteBalance = 0;
+        this.lastRecommendedBalance = 0;
+        this.result = [];
+        this.queue = [];
+        this.lastSelected = [];
+        this.lastRecommended = [];
+        this.lastBalance = 0;
+        this.winHappened = false;
+        this.isPositive = undefined;
+
+        this.offset = offset > 0 ? offset : 0;
+        this.limit = limit > 0 ? limit : 4;
+
+        this.recalc();
+    }
+
+    recalc() {
         SelectedNumbers.instance.freeze();
 
         const numbers = getNumbers();
@@ -228,6 +230,12 @@ class Bets {
         SelectedNumbers.instance.defrost();
     }
 
+    update(bets) {
+        this.clear();
+        this.bets = bets;
+        this.recalc();
+    }
+
     addPosition(n) {
         const offset = getLastOffset();
         this.orders.set(n, offset);
@@ -237,181 +245,138 @@ class Bets {
         }
     }
 
+    updateBets(list) {
+        return list.map(([n, count]) => [n, count - 1]).filter(([, count]) => count > 0);
+    }
+
+    nextBet() {
+        const [items = []] = getNumbers(37);
+
+        const [first, ...next] = items;
+
+        if (!first || !next || !next.length) {
+            return;
+        }
+
+        let count;
+
+        for (let i = 0; i < next.length; i++) {
+            if (next[i].number === first.number) {
+                count = 37 - (i + 1);
+                break;
+            }
+        }
+
+        if (this.offset < 1) {
+            if (!count) {
+                return;
+            }
+
+            return [first.number, count];
+        }
+
+        let queue = this.queue
+            .filter(([n]) => n !== first.number)
+            .map(([n, offset, count]) => [n, offset - 1, count]);
+
+        const current = queue.find(([,offset]) => offset === 0);
+
+        if (current) {
+            queue = queue.filter(([n]) => n !== current[0]);
+        }
+
+        if (count) {
+            queue.push([first.number, this.offset, count]);
+        }
+
+        this.queue = queue;
+
+        if (current) {
+            return [current[0], current[2]];
+        }
+    }
+
     next(n) {
         this.addPosition(n);
 
-        this.winHappened = this.bets.includes(n);
+        this.changeResult(n);
 
-        this.changeResult();
+        this.lastSelected = this.updateBets(this.lastSelected);
+
+        const next = this.nextBet();
+
+        if (next) {
+            const [nextNumber] = next;
+            this.lastSelected = this.lastSelected.filter(([n]) => nextNumber !== n);
+            this.lastSelected.unshift(next);
+        }
+
+        this.lastSelected = this.lastSelected.slice(0, this.limit);
+        // console.log('LAST', this.lastSelected);
+
+        const list = this.lastSelected.map(([n]) => n);
+        list.sort((a, b) => a - b);
+
+        this.lastRecommended = list;
+
+        emit('change_recommended');
     }
 
-    changeResult() {
-        this.absoluteBalance = this.calcBalance();
+    changeResult(n) {
+        if (!this.bets.includes(Infinity)) {
+            this.winHappened = this.bets.includes(n);
+            this.absoluteBalance = this.calcBalance(null, this.bets);;
 
-        this.lastPointsBalance = this.calcPointsDistance();
+            if (this.winHappened) {
+                this.isPositive = this.absoluteBalance >= this.lastBalance;
+                this.lastBalance = this.absoluteBalance;
+            }
+        } else {
+            this.winHappened = this.lastRecommended.includes(n);
+            this.lastRecommendedBalance += this.calcLastRecommendedBalance(n);
 
-        const diff = this.calcRelativeBalance();
-
-        this.relativeBalance += diff;
+            if (this.winHappened) {
+                this.isPositive = this.lastRecommendedBalance >= this.lastBalance;
+                this.lastBalance = this.lastRecommendedBalance;
+            }
+        }
 
         this.result.unshift([
             this.absoluteBalance,
-            this.lastPointsBalance,
-            this.relativeBalance,
-            this.winHappened
+            this.lastRecommendedBalance,
+            this.winHappened,
+            this.isPositive
         ]);
 
         this.result = this.result.slice(0, this.depth);
-
-        if (this.relativeBalance > this.maxWin) {
-            this.maxWin = this.relativeBalance;
-        }
-
-        if (this.maxWin > 0) {
-            this.stopPoint = this.getStopPoint() + this.maxWin;
-        }
     }
 
-    calcPointsDistance() {
-        const minPoints = 3;
-
-        let distance = 0;
-        let points = 0;
-
-        const [lastNumbers] = getNumbers(this.depth);
-
-        if (!lastNumbers) {
-            return 0;
+    calcLastRecommendedBalance(n) {
+        if (this.lastRecommended.includes(n)) {
+            return 36 - this.lastRecommended.length;
         }
 
-        for (let n of lastNumbers) {
-            distance += 1;
-
-            if (this.bets.includes(n.number)) {
-                points += 1;
-            }
-
-            if (points === minPoints) {
-                break;
-            }
-        }
-
-        if (points > 1) {
-            const wins = Math.floor(36 / this.bets.length) * (points - (points === minPoints ? 1 : 0));
-            const attempts = distance - (points === minPoints ? 1 : 0);
-            return wins - attempts;
-        }
-
-        return 0;
+        return -(this.lastRecommended.length);
     }
 
-    calcLastBalance() {
-        const minPoints = 4;
-        let balance = 0;
-        let points = 0;
-
-        const [lastNumbers] = getNumbers(this.depth);
-
-        if (!lastNumbers) {
-            return 0;
-        }
-
-        for (let n of lastNumbers) {
-            if (this.bets.includes(n.number)) {
-                balance += this.getWin();
-                points += 1;
-            } else {
-                balance -= 1;
-            }
-
-            if (points >= minPoints) {
-                break;
-            }
-        }
-
-        return balance - this.getWin();
-    }
-
-    calcRelativeBalance() {
-        if (!this.rounds) {
-            return 0;
-        }
-
-        if (!this.active) {
-            return 0;
-        }
-
-        const [lastNumbers] = getNumbers(this.rounds);
-
-        if (!lastNumbers) {
-            return 0;
-        }
-
-        const prev = this.relativeBalance;
-        const current = this.calcBalance(lastNumbers, this.bet);
-
-        return current - prev;
-    }
-
-    calcBalance(numbers, bet = 1) {
+    calcBalance(numbers, bets) {
         const list = numbers || getNumbers();
 
         let balance = 0;
 
         list.map((item) => item.number).forEach((n) => {
-            if (this.bets.includes(n)) {
-                balance += this.getWin(bet);
+            if (bets.includes(n)) {
+                balance += 36;
             } else {
-                balance -= bet;
+                balance -= bets.length;
             }
         });
 
         return balance;
     }
 
-    getWin(bet = 1) {
-        return Math.floor((36 * bet) / this.bets.length) - bet;
-    }
-
     getStopPoint() {
-        return -(Math.floor(80 / this.bets.length));
-    }
-
-    getHot() {
-        const minCompares = 3;
-        const minDiffs = 3;
-
-        let result = [];
-
-        const numbers = getNumbers();
-
-        for (let i = 0; i < Bets.SETS.length; i++) {
-            const set = Bets.SETS[i];
-            let compares = 0;
-            let uniqueNumbers = new Set();
-
-            for (let n of numbers) {
-                if (set.includes(n.number)) {
-                    uniqueNumbers.add(n.number);
-                    compares += 1;
-                }
-            }
-
-            if (uniqueNumbers.size < minDiffs) {
-                continue;
-            }
-
-            if (compares < minCompares) {
-                continue;
-            }
-
-            result = set;
-            break;
-        }
-
-        this.bets = result;
-
-        return this.bets;
+        return -(Math.ceil((80 / this.bets.length) / 3) * 3);
     }
 }
 
@@ -522,4 +487,10 @@ function getAvgRepeats(repeats) {
     const allAvg = allSum > 0 ? Math.round(allSum / all.length) : 0;
 
     return [hotAvg, allAvg];
+}
+
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
