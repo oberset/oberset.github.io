@@ -124,13 +124,21 @@ function lastNumbersStrategy() {
     const lineStructure = new Line('.strategy-last-numbers');
     const numbersPositionStructure = new Line('.numbers-position');
     const gameRoundsStructure = new Line('.game-rounds-count');
-    const winAttemptsStructure = new Line('.win-attempts');
     const resultStructure = new Line('.result');
     const customNumbersInput = document.querySelector('.custom_numbers input');
+    const customOffsetInput = document.querySelector('.custom_offset input');
+    const offsetPlusControl = document.querySelector('.custom_offset #offset_plus');
+    const offsetMinusControl = document.querySelector('.custom_offset #offset_minus');
 
     const service = new Bets();
 
-    showBets(lineStructure, service);
+    const addNewNumbers = (list) => {
+        if (list.length) {
+            customNumbersInput.value = list.join(',');
+        }
+    }
+
+    showRecommended(lineStructure, service, Bets.SETS, addNewNumbers);
 
     const button = document.querySelector('.start-game');
     const buttonEventListener = () => {
@@ -146,11 +154,49 @@ function lastNumbersStrategy() {
     };
     button.addEventListener('click', buttonEventListener);
 
+    const changeOffset = (value) => {
+        if (value) {
+            const [offset, limit] = value.split(/[\D\s]+/).map((n) => Number(n)).filter((n) => !isNaN(n));
+            service.changeOffset(offset, limit);
+        } else {
+            service.changeOffset();
+        }
+    }
+
+    offsetPlusControl.addEventListener('click', () => {
+        const value = parseInt(customOffsetInput.value.toString());
+        let newValue = 1;
+
+        if (value > 0) {
+            newValue = value + 1;
+        }
+
+        customOffsetInput.value = newValue;
+        changeOffset(newValue.toString());
+    });
+
+    offsetMinusControl.addEventListener('click', () => {
+        const value = parseInt(customOffsetInput.value.toString());
+        let newValue = 0;
+
+        if (value > 1) {
+            newValue = value - 1;
+        }
+
+        customOffsetInput.value = newValue;
+        changeOffset(newValue.toString());
+    });
+
+    addEventListener('change_recommended', () => {
+        const recommended = service.lastRecommended;
+
+        showRecommended(lineStructure, service, Bets.SETS.concat([recommended]), addNewNumbers);
+    })
+
     addEventListener('add_number', () => {
         calcLastNumbers(lineStructure, service);
         nextSpin(gameRoundsStructure, service.rounds);
         calcNumbersPosition(numbersPositionStructure, service.orders.entries());
-        calcWinAttempts(winAttemptsStructure, service);
         showResult(resultStructure, service);
     });
 
@@ -160,7 +206,6 @@ function lastNumbersStrategy() {
         calcLastNumbers(lineStructure, service);
         nextSpin(gameRoundsStructure, service.rounds);
         calcNumbersPosition(numbersPositionStructure, service.orders.entries());
-        calcWinAttempts(winAttemptsStructure, service);
 
         button.classList.remove('neutral');
         button.classList.add('green');
@@ -172,7 +217,6 @@ function lastNumbersStrategy() {
         calcLastNumbers(lineStructure, service);
         nextSpin(gameRoundsStructure, service.rounds);
         calcNumbersPosition(numbersPositionStructure, service.orders.entries());
-        calcWinAttempts(winAttemptsStructure, service);
     });
 
     customNumbersInput.addEventListener('blur', (e) => {
@@ -185,6 +229,11 @@ function lastNumbersStrategy() {
             }
         }
     });
+
+    customOffsetInput.addEventListener('blur', (e) => {
+        const value = e.currentTarget.value;
+        changeOffset(value);
+    })
 }
 
 function calcLineStrategyScore(lineStructure, prop, isUpdate = false) {
@@ -261,7 +310,7 @@ function calsRepeats(lineStructure, isUpdate = false) {
 
 function showResult(resultStructure, service) {
     const result = service.result;
-    const index = Math.floor(36 / service.bets.length) - 1;
+    const index = Math.floor(108 / Math.max(service.bets.length, 2)) - 1;
     const group = resultStructure.getFirstItemsGroupElement();
     const items = resultStructure.getItemsElement(group);
 
@@ -272,8 +321,23 @@ function showResult(resultStructure, service) {
         const numbersElement = document.createElement('div');
         numbersElement.classList.add('container');
 
-        const [count1, count2, count3, winHappened] = items;
-        const balances = [count1, count2, count3];
+        const [count1, count2, winHappened, isPositive] = items;
+
+        if (!service.began && !winHappened) {
+            continue;
+        }
+
+        const numberElement = document.createElement('div');
+        numberElement.classList.add('number');
+        numberElement.classList.add('empty');
+
+        if (isPositive !== undefined) {
+            numberElement.classList.add(isPositive ? 'plus' : 'minus');
+        }
+
+        fragment.appendChild(numberElement);
+
+        const balances = [count1, count2];
 
         for (let count of balances) {
             const numberElement = document.createElement('div');
@@ -311,7 +375,7 @@ function calcLastNumbers(lineStructure, service) {
     service.next(current);
 }
 
-function showBets(lineStructure, service) {
+function showRecommended(lineStructure, service, recommended, onChange) {
     const group = lineStructure.getFirstItemsGroupElement();
     const items = lineStructure.getItemsElement(group);
     const template = lineStructure.getFirstItemElement(items);
@@ -319,11 +383,13 @@ function showBets(lineStructure, service) {
     const betsList = new WeakMap();
 
     const elements = [];
+    const selected = service.bets.join(' ');
 
-    for (let set of Bets.SETS) {
-        const element = createItem(template, set.join(' '));
+    for (let set of recommended) {
+        const text = set.join(' ');
+        const element = createItem(template, text);
 
-        if (set === service.bets) {
+        if (text === selected) {
             element.classList.remove('neutral');
             element.classList.add('positive-3');
         } else {
@@ -334,37 +400,17 @@ function showBets(lineStructure, service) {
         betsList.set(element, set);
 
         element.addEventListener('click', (e) => {
-            service.update(betsList.get(e.currentTarget));
-            showBets(lineStructure, service);
+            const list = betsList.get(e.currentTarget);
+            service.update(list);
+            if (onChange) {
+                onChange(list);
+            }
         });
 
         elements.push(element);
     }
 
     lineStructure.setItems(items, elements);
-}
-
-function calcWinAttempts(lineStructure, service) {
-    const group = lineStructure.getFirstItemsGroupElement();
-    const items = lineStructure.getItemsElement(group);
-    const template = lineStructure.getFirstItemElement(items);
-
-    const balance = service.relativeBalance;
-    const stopPoint = service.stopPoint;
-
-    const element = createItem(template, stopPoint);
-
-    if (balance > stopPoint) {
-        element.classList.remove('neutral');
-        element.classList.remove('red');
-        element.classList.add('green');
-    } else if (balance <= stopPoint) {
-        element.classList.remove('neutral');
-        element.classList.remove('green');
-        element.classList.add('red');
-    }
-
-    lineStructure.updateItems(items, element);
 }
 
 function _roundValue(value, roundList) {
