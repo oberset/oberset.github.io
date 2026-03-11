@@ -117,14 +117,19 @@
     width: 32px;
 }
 
-.custom_numbers, .custom_offset {
+.custom_numbers,
+.custom_offset,
+.custom_skip,
+.custom_mode {
     width: 100%;
     height: 24px;
     margin-bottom: 18px;
 }
 
 .custom_numbers input,
-.custom_offset input
+.custom_offset input,
+.custom_skip input,
+.custom_mode input
 {
     height: 100%;
 }
