@@ -126,7 +126,9 @@ function lastNumbersStrategy() {
     const gameRoundsStructure = new Line('.game-rounds-count');
     const resultStructure = new Line('.result');
     const customNumbersInput = document.querySelector('.custom_numbers input');
+    const customModeInput = document.querySelector('.custom_mode input');
     const customOffsetInput = document.querySelector('.custom_offset input');
+    const customSkipInput = document.querySelector('.custom_skip input');
     const offsetPlusControl = document.querySelector('.custom_offset #offset_plus');
     const offsetMinusControl = document.querySelector('.custom_offset #offset_minus');
 
@@ -156,8 +158,8 @@ function lastNumbersStrategy() {
 
     const changeOffset = (value) => {
         if (value) {
-            const [offset, limit] = value.split(/[\D\s]+/).map((n) => Number(n)).filter((n) => !isNaN(n));
-            service.changeOffset(offset, limit);
+            const [offset, steps, limit] = value.split(/[\D\s]+/).map((n) => Number(n)).filter((n) => !isNaN(n));
+            service.changeOffset(offset, steps, limit);
         } else {
             service.changeOffset();
         }
@@ -233,7 +235,17 @@ function lastNumbersStrategy() {
     customOffsetInput.addEventListener('blur', (e) => {
         const value = e.currentTarget.value;
         changeOffset(value);
-    })
+    });
+
+    customSkipInput.addEventListener('blur', (e) => {
+        const value = parseInt(e.currentTarget.value) || 0;
+        service.setSkip(value);
+    });
+
+    customModeInput.addEventListener('blur', (e) => {
+        const value = parseInt(e.currentTarget.value) || 0;
+        service.setMode(value);
+    });
 }
 
 function calcLineStrategyScore(lineStructure, prop, isUpdate = false) {
