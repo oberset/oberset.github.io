@@ -129,16 +129,7 @@ class SelectedNumbers {
 
 class Bets {
     static SETS = [
-        [Infinity],
-        [2,4],
-        [6,9],
-        [17,20],
-        [25,32],
-        [31,34],
-        [24,27],
-        [13,36],
-        [23,26],
-        [12,21]
+        [Infinity]
     ];
 
     constructor() {
@@ -159,6 +150,10 @@ class Bets {
         this.offset = 0;
         this.limit = 4;
         this.lastBalance = 0;
+        this.skip = 0;
+        this.count = 0;
+        this.steps = 0;
+        this.mode = 1;
     }
 
     start() {
@@ -189,13 +184,11 @@ class Bets {
         this.lastRecommended = [];
         this.queue = [];
         this.lastBalance = 0;
+        this.count = 0;
         console.log('clear');
     }
 
-    changeOffset(offset, limit) {
-        console.log('offset', offset);
-        console.log('limit', limit);
-
+    reset() {
         this.absoluteBalance = 0;
         this.lastRecommendedBalance = 0;
         this.result = [];
@@ -205,9 +198,19 @@ class Bets {
         this.lastBalance = 0;
         this.winHappened = false;
         this.isPositive = undefined;
+        this.count = 0;
+    }
+
+    changeOffset(offset, steps, limit) {
+        console.log('offset', offset);
+        console.log('limit', steps);
+        console.log('limit', limit);
+
+        this.reset();
 
         this.offset = offset > 0 ? offset : 0;
         this.limit = limit > 0 ? limit : 4;
+        this.steps = steps > 0 ? steps : 0;
 
         this.recalc();
     }
@@ -249,7 +252,7 @@ class Bets {
         return list.map(([n, count]) => [n, count - 1]).filter(([, count]) => count > 0);
     }
 
-    nextBet() {
+    getFrequentNumber() {
         const [items = []] = getNumbers(37);
 
         const [first, ...next] = items;
@@ -262,7 +265,7 @@ class Bets {
 
         for (let i = 0; i < next.length; i++) {
             if (next[i].number === first.number) {
-                count = 37 - (i + 1);
+                count = this.steps || (37 - (i + 1));
                 break;
             }
         }
@@ -296,14 +299,42 @@ class Bets {
         }
     }
 
+    getLateNumber() {
+        const distance = 37 + this.offset;
+        const first = currentGame.numbers[0];
+
+        const offset = getLastOffset() || (this.count - 1);
+
+        if (offset > distance) {
+            return [first, this.steps || 24];
+        }
+    }
+
     next(n) {
+        this.count += 1;
+
+        if (this.count <= this.skip) {
+            return;
+        }
+
         this.addPosition(n);
 
         this.changeResult(n);
 
         this.lastSelected = this.updateBets(this.lastSelected);
 
-        const next = this.nextBet();
+        let next;
+
+        if (this.mode === 1) {
+            next = this.getFrequentNumber();
+        } else if (this.mode === 2) {
+            next = this.getLateNumber();
+        } else if (this.mode === 3) {
+            const late = this.getLateNumber();
+            const frequent = this.getFrequentNumber();
+
+            next = late || frequent;
+        }
 
         if (next) {
             const [nextNumber] = next;
@@ -325,7 +356,7 @@ class Bets {
     changeResult(n) {
         if (!this.bets.includes(Infinity)) {
             this.winHappened = this.bets.includes(n);
-            this.absoluteBalance = this.calcBalance(null, this.bets);;
+            this.absoluteBalance = this.calcBalance(null, this.bets);
 
             if (this.winHappened) {
                 this.isPositive = this.absoluteBalance >= this.lastBalance;
@@ -351,6 +382,26 @@ class Bets {
         this.result = this.result.slice(0, this.depth);
     }
 
+    setSkip(skip = 0) {
+        console.log('skip', skip);
+
+        this.reset();
+
+        this.skip = skip;
+
+        this.recalc();
+    }
+
+    setMode(mode = 1) {
+        console.log('mode', mode);
+
+        this.reset();
+
+        this.mode = [1,2,3].includes(mode) ? mode : 1;
+
+        this.recalc();
+    }
+
     calcLastRecommendedBalance(n) {
         if (this.lastRecommended.includes(n)) {
             return 36 - this.lastRecommended.length;
@@ -360,7 +411,11 @@ class Bets {
     }
 
     calcBalance(numbers, bets) {
-        const list = numbers || getNumbers();
+        let list = numbers || getNumbers();
+
+        if (this.skip > 0) {
+            list = list.slice(0, list.length - this.skip);
+        }
 
         let balance = 0;
 
