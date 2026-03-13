@@ -131,6 +131,9 @@ function lastNumbersStrategy() {
     const customSkipInput = document.querySelector('.custom_skip input');
     const offsetPlusControl = document.querySelector('.custom_offset #offset_plus');
     const offsetMinusControl = document.querySelector('.custom_offset #offset_minus');
+    const saveMixControl = document.querySelector('.custom_save_mix button');
+    const mixStructure = document.querySelector('.custom_mix');
+    const toggleMix = document.querySelector('.custom_toggle_mix button');
 
     const service = new Bets();
 
@@ -221,6 +224,22 @@ function lastNumbersStrategy() {
         calcNumbersPosition(numbersPositionStructure, service.orders.entries());
     });
 
+    addEventListener('change_mix', () => {
+        mixStructure.innerHTML = '';
+
+        const mix = [...service.mix.entries()];
+
+        mix.forEach(([id, item]) => {
+            const element = document.createElement('div');
+            element.classList.add('mix-item');
+            element.textContent = item.join(', ');
+            element.addEventListener('click', () => {
+                service.deleteOptions(id);
+            });
+            mixStructure.appendChild(element);
+        });
+    });
+
     customNumbersInput.addEventListener('blur', (e) => {
         const value = e.currentTarget.value;
         if (value) {
@@ -245,6 +264,15 @@ function lastNumbersStrategy() {
     customModeInput.addEventListener('blur', (e) => {
         const value = parseInt(e.currentTarget.value) || 0;
         service.setMode(value);
+    });
+
+    saveMixControl.addEventListener('click', () => {
+        service.saveOptions();
+    });
+
+    toggleMix.addEventListener('click', (e) => {
+        service.useMix ? service.stopMix() : service.startMix();
+        e.currentTarget.textContent = service.useMix ? 'Stop mix' : 'Start mix';
     });
 }
 
