@@ -144,7 +144,7 @@ class Bets {
         this.depth = 750;
         this.winHappened = false;
         this.isPositive = undefined;
-        this.lastSelected = [];
+        this.lastSelected = new Map();
         this.lastRecommended = [];
         this.queue = [];
         this.offset = 0;
@@ -154,6 +154,8 @@ class Bets {
         this.count = 0;
         this.steps = 0;
         this.mode = 1;
+        this.mix = new Map();
+        this.useMix = false;
     }
 
     start() {
@@ -180,11 +182,12 @@ class Bets {
         this.lastRecommendedBalance = 0;
         this.winHappened = false;
         this.isPositive = undefined;
-        this.lastSelected = [];
+        this.lastSelected.clear();
         this.lastRecommended = [];
         this.queue = [];
         this.lastBalance = 0;
         this.count = 0;
+        this.useMix = false;
         console.log('clear');
     }
 
@@ -193,7 +196,7 @@ class Bets {
         this.lastRecommendedBalance = 0;
         this.result = [];
         this.queue = [];
-        this.lastSelected = [];
+        this.lastSelected.clear();
         this.lastRecommended = [];
         this.lastBalance = 0;
         this.winHappened = false;
@@ -252,7 +255,7 @@ class Bets {
         return list.map(([n, count]) => [n, count - 1]).filter(([, count]) => count > 0);
     }
 
-    getFrequentNumber() {
+    getFrequentNumber(offset, steps) {
         const [items = []] = getNumbers(37);
 
         const [first, ...next] = items;
@@ -265,12 +268,12 @@ class Bets {
 
         for (let i = 0; i < next.length; i++) {
             if (next[i].number === first.number) {
-                count = this.steps || (37 - (i + 1));
+                count = steps || (37 - (i + 1));
                 break;
             }
         }
 
-        if (this.offset < 1) {
+        if (offset < 1) {
             if (!count) {
                 return;
             }
@@ -280,16 +283,16 @@ class Bets {
 
         let queue = this.queue
             .filter(([n]) => n !== first.number)
-            .map(([n, offset, count]) => [n, offset - 1, count]);
+            .map(([n, ofs, count]) => [n, ofs - 1, count]);
 
-        const current = queue.find(([,offset]) => offset === 0);
+        const current = queue.find(([,ofs]) => ofs === 0);
 
         if (current) {
             queue = queue.filter(([n]) => n !== current[0]);
         }
 
         if (count) {
-            queue.push([first.number, this.offset, count]);
+            queue.push([first.number, offset, count]);
         }
 
         this.queue = queue;
@@ -299,15 +302,60 @@ class Bets {
         }
     }
 
-    getLateNumber() {
-        const distance = 37 + this.offset;
+    getLateNumber(offset, steps) {
+        const distance = 35 + offset;
         const first = currentGame.numbers[0];
 
-        const offset = getLastOffset() || (this.count - 1);
+        const numberOffset = getLastOffset() || (this.count - 1);
 
-        if (offset > distance) {
-            return [first, this.steps || 24];
+        if (numberOffset > distance) {
+            return [first, steps || 24];
         }
+    }
+
+    updateSelectedNumbers() {
+        let mix = this.useMix ? [...this.mix.entries()] : [
+            [0, [this.mode, this.offset, this.steps, this.limit]]
+        ];
+
+        mix.forEach(([id, item]) => {
+            let next;
+
+            let lastSelected = this.lastSelected.get(id) || [];
+            const [mode, offset, steps, limit] = item;
+
+            if (mode === 1) {
+                next = this.getFrequentNumber(offset, steps);
+            } else if (mode === 2) {
+                next = this.getLateNumber(offset, steps);
+            }
+
+            if (next) {
+                const [nextNumber] = next;
+                lastSelected = lastSelected.filter(([n]) => nextNumber !== n);
+                lastSelected.unshift(next);
+            }
+
+            lastSelected = lastSelected.slice(0, limit);
+            // console.log('LAST', lastSelected);
+
+            this.lastSelected.set(id, lastSelected);
+        });
+
+        const uniqueList = new Set();
+
+        this.lastSelected.forEach((items) => {
+            items.forEach(([n]) => {
+                uniqueList.add(n);
+            });
+        });
+
+        const list = Array.from(uniqueList);
+        list.sort((a, b) => a - b);
+
+        this.lastRecommended = list;
+
+        emit('change_recommended');
     }
 
     next(n) {
@@ -321,36 +369,27 @@ class Bets {
 
         this.changeResult(n);
 
-        this.lastSelected = this.updateBets(this.lastSelected);
+        [...this.lastSelected.entries()].forEach(([id, list]) => {
+            this.lastSelected.set(id, this.updateBets(list))
+        });
 
-        let next;
+        this.updateSelectedNumbers();
+    }
 
-        if (this.mode === 1) {
-            next = this.getFrequentNumber();
-        } else if (this.mode === 2) {
-            next = this.getLateNumber();
-        } else if (this.mode === 3) {
-            const late = this.getLateNumber();
-            const frequent = this.getFrequentNumber();
+    startMix() {
+        console.log('Start mix');
+        this.useMix = true;
 
-            next = late || frequent;
-        }
+        this.reset();
+        this.recalc();
+    }
 
-        if (next) {
-            const [nextNumber] = next;
-            this.lastSelected = this.lastSelected.filter(([n]) => nextNumber !== n);
-            this.lastSelected.unshift(next);
-        }
+    stopMix() {
+        console.log('Stop mix');
+        this.useMix = false;
 
-        this.lastSelected = this.lastSelected.slice(0, this.limit);
-        // console.log('LAST', this.lastSelected);
-
-        const list = this.lastSelected.map(([n]) => n);
-        list.sort((a, b) => a - b);
-
-        this.lastRecommended = list;
-
-        emit('change_recommended');
+        this.reset();
+        this.recalc();
     }
 
     changeResult(n) {
@@ -397,8 +436,27 @@ class Bets {
 
         this.reset();
 
-        this.mode = [1,2,3].includes(mode) ? mode : 1;
+        this.mode = [1,2].includes(mode) ? mode : 1;
 
+        this.recalc();
+    }
+
+    saveOptions() {
+        setTimeout(() => {
+            const id = this.mix.size;
+            this.lastSelected.delete(id);
+            this.mix.set(id, [this.mode, this.offset, this.steps, this.limit]);
+            console.log('Mix', [...this.mix.values()]);
+            emit('change_mix');
+        }, 5);
+    }
+
+    deleteOptions(id) {
+        this.mix.delete(id);
+        console.log('Mix', [...this.mix.values()]);
+        emit('change_mix');
+
+        this.reset();
         this.recalc();
     }
 
