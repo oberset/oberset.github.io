@@ -206,8 +206,6 @@ function lastNumbersStrategy() {
     });
 
     addEventListener('delete_number', () => {
-        service.clear();
-
         calcLastNumbers(lineStructure, service);
         nextSpin(gameRoundsStructure, service.rounds);
         calcNumbersPosition(numbersPositionStructure, service.orders.entries());
