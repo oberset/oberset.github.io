@@ -156,6 +156,11 @@ class Bets {
         this.mode = 1;
         this.mix = new Map();
         this.useMix = false;
+
+        addEventListener('delete_number', () => {
+            this.reset();
+            this.recalc();
+        });
     }
 
     start() {
@@ -167,7 +172,6 @@ class Bets {
 
     stop() {
         console.log('stop');
-        this.rounds = 0;
         this.active = false;
         this.began = false;
         this.update(this.bets);
@@ -175,7 +179,6 @@ class Bets {
 
     clear() {
         this.orders = new Map();
-        this.rounds = 0;
         this.bets = [];
         this.result = [];
         this.absoluteBalance = 0;
@@ -187,7 +190,6 @@ class Bets {
         this.queue = [];
         this.lastBalance = 0;
         this.count = 0;
-        this.useMix = false;
         console.log('clear');
     }
 
@@ -245,18 +247,14 @@ class Bets {
     addPosition(n) {
         const offset = getLastOffset();
         this.orders.set(n, offset);
-
-        if (this.active) {
-            this.rounds += 1;
-        }
     }
 
     updateBets(list) {
         return list.map(([n, count]) => [n, count - 1]).filter(([, count]) => count > 0);
     }
 
-    getFrequentNumber(offset, steps) {
-        const [items = []] = getNumbers(37);
+    getFrequentNumber(offset, steps, distance = 37) {
+        const [items = []] = getNumbers(distance);
 
         const [first, ...next] = items;
 
@@ -328,6 +326,10 @@ class Bets {
                 next = this.getFrequentNumber(offset, steps);
             } else if (mode === 2) {
                 next = this.getLateNumber(offset, steps);
+            } else if (mode === 3) {
+                next = this.getFrequentNumber(offset, steps, 14);
+            } else if (mode === 4) {
+                next = this.getFrequentNumber(offset, steps, 25);
             }
 
             if (next) {
@@ -436,7 +438,7 @@ class Bets {
 
         this.reset();
 
-        this.mode = [1,2].includes(mode) ? mode : 1;
+        this.mode = [1, 2, 3, 4].includes(mode) ? mode : 1;
 
         this.recalc();
     }
