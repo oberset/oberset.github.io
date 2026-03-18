@@ -132,6 +132,8 @@ class Bets {
         [Infinity]
     ];
 
+    static MODES = [1,2,3,4,5,6];
+
     constructor() {
         this.orders = new Map();
         this.rounds = 0;
@@ -153,7 +155,7 @@ class Bets {
         this.skip = 0;
         this.count = 0;
         this.steps = 0;
-        this.mode = 1;
+        this.mode = Bets.MODES[0];
         this.mix = new Map();
         this.useMix = false;
 
@@ -253,7 +255,7 @@ class Bets {
         return list.map(([n, count]) => [n, count - 1]).filter(([, count]) => count > 0);
     }
 
-    getFrequentNumber(offset, steps, distance = 37) {
+    getFrequentNumber(offset, steps, distance = 37, startFrom = 0, endFrom = 0) {
         const [items = []] = getNumbers(distance);
 
         const [first, ...next] = items;
@@ -266,7 +268,14 @@ class Bets {
 
         for (let i = 0; i < next.length; i++) {
             if (next[i].number === first.number) {
-                count = steps || (37 - (i + 1));
+                let currentSteps = steps || (37 - (i + 1));
+                if (startFrom > 0 && endFrom > startFrom) {
+                    if (i < startFrom || i >= endFrom) {
+                        break;
+                    }
+                    currentSteps = steps || 24;
+                }
+                count = currentSteps;
                 break;
             }
         }
@@ -329,7 +338,11 @@ class Bets {
             } else if (mode === 3) {
                 next = this.getFrequentNumber(offset, steps, 14);
             } else if (mode === 4) {
-                next = this.getFrequentNumber(offset, steps, 25);
+                next = this.getFrequentNumber(offset, steps, 26);
+            } else if (mode === 5) {
+                next = this.getFrequentNumber(offset, steps, 37, 13, 25);
+            } else if (mode === 6) {
+                next = this.getFrequentNumber(offset, steps, 37, 25, 37);
             }
 
             if (next) {
@@ -438,7 +451,7 @@ class Bets {
 
         this.reset();
 
-        this.mode = [1, 2, 3, 4].includes(mode) ? mode : 1;
+        this.mode = Bets.MODES.includes(mode) ? mode : Bets.MODES[0];
 
         this.recalc();
     }
