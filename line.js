@@ -132,7 +132,7 @@ class Bets {
         [Infinity]
     ];
 
-    static MODES = [1,2,3,4,5,6];
+    static MODES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
     constructor() {
         this.orders = new Map();
@@ -340,9 +340,17 @@ class Bets {
             } else if (mode === 4) {
                 next = this.getFrequentNumber(offset, steps, 26);
             } else if (mode === 5) {
-                next = this.getFrequentNumber(offset, steps, 37, 13, 25);
+                next = this.getFrequentNumber(offset, steps, 25, 13, 25);
             } else if (mode === 6) {
                 next = this.getFrequentNumber(offset, steps, 37, 25, 37);
+            } else if (mode === 7) {
+                next = this.getFrequentNumber(offset, steps, 54, 37, 54);
+            } else if (mode === 8) {
+                next = this.getFrequentNumber(offset, steps, 72, 54, 72);
+            } else if (mode === 9) {
+                next = this.getFrequentNumber(offset, steps, 54, 25, 54);
+            } else if (mode === 10) {
+                next = this.getFrequentNumber(offset, steps, 72, 37, 72);
             }
 
             if (next) {
