@@ -260,8 +260,8 @@ function lastNumbersStrategy() {
     });
 
     customModeInput.addEventListener('blur', (e) => {
-        const value = parseInt(e.currentTarget.value) || 0;
-        service.setMode(value);
+        const [mode = 0, checkOnce = 0] = e.currentTarget.value.split(/[\D\s]+/).map((value) => parseInt(value, 10));
+        service.setMode(mode, checkOnce);
     });
 
     saveMixControl.addEventListener('click', () => {
