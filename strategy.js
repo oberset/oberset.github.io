@@ -195,7 +195,7 @@ function lastNumbersStrategy() {
     addEventListener('change_recommended', () => {
         const recommended = service.lastRecommended;
 
-        showRecommended(lineStructure, service, Bets.SETS.concat([recommended]), addNewNumbers);
+        showRecommended(lineStructure, service, Bets.SETS.concat(recommended), addNewNumbers);
     })
 
     addEventListener('add_number', () => {
