@@ -154,7 +154,7 @@ class Bets {
         this.isPositive = undefined;
         this.lastSelected = new Map();
         this.lastRecommended = [];
-        this.queue = [];
+        this.queue = new Map();
         this.offset = 0;
         this.limit = 4;
         this.lastBalance = 0;
@@ -196,7 +196,7 @@ class Bets {
         this.isPositive = undefined;
         this.lastSelected.clear();
         this.lastRecommended = [];
-        this.queue = [];
+        this.queue.clear();
         this.lastBalance = 0;
         this.count = 0;
         console.log('clear');
@@ -206,7 +206,7 @@ class Bets {
         this.absoluteBalance = 0;
         this.lastRecommendedBalance = 0;
         this.result = [];
-        this.queue = [];
+        this.queue.clear();
         this.lastSelected.clear();
         this.lastRecommended = [];
         this.lastBalance = 0;
@@ -217,7 +217,7 @@ class Bets {
 
     changeOffset(offset, steps, limit) {
         console.log('offset', offset);
-        console.log('limit', steps);
+        console.log('steps', steps);
         console.log('limit', limit);
 
         this.reset();
@@ -262,7 +262,7 @@ class Bets {
         return list.map(([n, count]) => [n, count - 1]).filter(([, count]) => count > 0);
     }
 
-    getFrequentNumber(offset, steps, distance = 36, startFrom = 0, endFrom = 0) {
+    getFrequentNumber(seqId, offset, steps, distance = 36, startFrom = 0, endFrom = 0) {
         const [items = []] = getNumbers(distance + 1);
 
         const [first, ...next] = items;
@@ -295,7 +295,11 @@ class Bets {
             return [first.number, count];
         }
 
-        let queue = this.queue
+        if (!this.queue.has(seqId)) {
+            this.queue.set(seqId, []);
+        }
+
+        let queue = this.queue.get(seqId)
             .filter(([n]) => n !== first.number)
             .map(([n, ofs, count]) => [n, ofs - 1, count]);
 
@@ -309,7 +313,7 @@ class Bets {
             queue.push([first.number, offset, count]);
         }
 
-        this.queue = queue;
+        this.queue.set(seqId, queue);
 
         if (current) {
             return [current[0], current[2]];
@@ -343,39 +347,39 @@ class Bets {
             }
 
             if (mode === 1) {
-                next = this.getFrequentNumber(offset, steps);
+                next = this.getFrequentNumber(id, offset, steps);
             } else if (mode === 2) {
                 next = this.getLateNumber(offset, steps);
             } else if (mode === 10) {
-                next = this.getFrequentNumber(offset, steps, 13);
+                next = this.getFrequentNumber(id, offset, steps, 13);
             } else if (mode === 11) {
-                next = this.getFrequentNumber(offset, steps, 25, 13, 25);
+                next = this.getFrequentNumber(id, offset, steps, 25, 13, 25);
             } else if (mode === 12) {
-                next = this.getFrequentNumber(offset, steps, 37, 25, 37);
+                next = this.getFrequentNumber(id, offset, steps, 37, 25, 37);
             } else if (mode === 13) {
-                next = this.getFrequentNumber(offset, steps, 54, 37, 54);
+                next = this.getFrequentNumber(id, offset, steps, 54, 37, 54);
             } else if (mode === 14) {
-                next = this.getFrequentNumber(offset, steps, 72, 54, 72);
+                next = this.getFrequentNumber(id, offset, steps, 72, 54, 72);
             } else if (mode === 15) {
-                next = this.getFrequentNumber(offset, steps, 108, 72, 108);
+                next = this.getFrequentNumber(id, offset, steps, 108, 72, 108);
             } else if (mode === 16) {
-                next = this.getFrequentNumber(offset, steps, 999, 108, 999);
+                next = this.getFrequentNumber(id, offset, steps, 999, 108, 999);
             } else if (mode === 20) {
-                next = this.getFrequentNumber(offset, steps, 25);
+                next = this.getFrequentNumber(id, offset, steps, 25);
             } else if (mode === 21) {
-                next = this.getFrequentNumber(offset, steps, 54, 25, 54);
+                next = this.getFrequentNumber(id, offset, steps, 54, 25, 54);
             } else if (mode === 22) {
-                next = this.getFrequentNumber(offset, steps, 108, 54, 108);
+                next = this.getFrequentNumber(id, offset, steps, 108, 54, 108);
             } else if (mode === 30) {
-                next = this.getFrequentNumber(offset, steps, 999, 37, 999);
+                next = this.getFrequentNumber(id, offset, steps, 999, 37, 999);
             } else if (mode === 31) {
-                next = this.getFrequentNumber(offset, steps, 999, 54, 999);
+                next = this.getFrequentNumber(id, offset, steps, 999, 54, 999);
             } else if (mode === 32) {
-                next = this.getFrequentNumber(offset, steps, 999, 72, 999);
+                next = this.getFrequentNumber(id, offset, steps, 999, 72, 999);
             } else if (mode === 33) {
-                next = this.getFrequentNumber(offset, steps, 999, 108, 999);
+                next = this.getFrequentNumber(id, offset, steps, 999, 108, 999);
             } else if (mode === 40) {
-                next = this.getFrequentNumber(offset, steps, 999);
+                next = this.getFrequentNumber(id, offset, steps, 999);
             }
 
             if (next) {
@@ -385,23 +389,21 @@ class Bets {
             }
 
             lastSelected = lastSelected.slice(0, limit);
-            // console.log('LAST', lastSelected);
+            console.log('LAST', lastSelected);
 
             this.lastSelected.set(id, lastSelected);
         });
 
-        const uniqueList = new Set();
+        const lastRecommended = [];
 
         this.lastSelected.forEach((items) => {
-            items.forEach(([n]) => {
-                uniqueList.add(n);
-            });
+            const list = items.map(([n]) => n);
+            list.sort((a, b) => a - b);
+
+            lastRecommended.push(list);
         });
 
-        const list = Array.from(uniqueList);
-        list.sort((a, b) => a - b);
-
-        this.lastRecommended = list;
+        this.lastRecommended = lastRecommended;
 
         emit('change_recommended');
     }
@@ -450,7 +452,15 @@ class Bets {
                 this.lastBalance = this.absoluteBalance;
             }
         } else {
-            this.winHappened = this.lastRecommended.includes(n);
+            this.winHappened = false;
+
+            for (let items of this.lastRecommended) {
+                if (items.includes(n)) {
+                    this.winHappened = true;
+                    break;
+                }
+            }
+
             this.lastRecommendedBalance += this.calcLastRecommendedBalance(n);
 
             if (this.winHappened) {
@@ -494,7 +504,6 @@ class Bets {
     saveOptions() {
         setTimeout(() => {
             const id = this.mix.size;
-            this.lastSelected.delete(id);
             this.mix.set(id, [this.mode, this.offset, this.steps, this.limit, this.checkOnce]);
             console.log('Mix', [...this.mix.values()]);
             emit('change_mix');
@@ -511,11 +520,24 @@ class Bets {
     }
 
     calcLastRecommendedBalance(n) {
-        if (this.lastRecommended.includes(n)) {
-            return 36 - this.lastRecommended.length;
+        let balance = 0;
+        let count = 0;
+
+        for (let items of this.lastRecommended) {
+            count += items.length;
         }
 
-        return -(this.lastRecommended.length);
+        for (let items of this.lastRecommended) {
+            if (items.includes(n)) {
+                balance += 36 - count;
+            }
+        }
+
+        if (balance > 0) {
+            return balance;
+        }
+
+        return -(count);
     }
 
     calcBalance(numbers, bets) {
