@@ -133,11 +133,7 @@ class Bets {
     ];
 
     static MODES = [
-        1, 2,
-        10,11,12,13,14,15,16,
-        20,21,22,
-        30,31,32,33,
-        40
+        1, 2, 3, 4, 5
     ];
 
     constructor() {
@@ -154,17 +150,17 @@ class Bets {
         this.isPositive = undefined;
         this.lastSelected = new Map();
         this.lastRecommended = [];
-        this.queue = new Map();
-        this.offset = 0;
-        this.limit = 4;
+        this.offset = 24;
+        this.limit = 24;
         this.lastBalance = 0;
         this.skip = 0;
         this.count = 0;
-        this.steps = 0;
+        this.steps = 24;
         this.mode = Bets.MODES[0];
         this.mix = new Map();
         this.useMix = false;
         this.checkOnce = false;
+        this.lastFailed = [];
 
         addEventListener('delete_number', () => {
             this.reset();
@@ -196,9 +192,9 @@ class Bets {
         this.isPositive = undefined;
         this.lastSelected.clear();
         this.lastRecommended = [];
-        this.queue.clear();
         this.lastBalance = 0;
         this.count = 0;
+        this.lastFailed = [];
         console.log('clear');
     }
 
@@ -206,13 +202,13 @@ class Bets {
         this.absoluteBalance = 0;
         this.lastRecommendedBalance = 0;
         this.result = [];
-        this.queue.clear();
         this.lastSelected.clear();
         this.lastRecommended = [];
         this.lastBalance = 0;
         this.winHappened = false;
         this.isPositive = undefined;
         this.count = 0;
+        this.lastFailed = [];
     }
 
     changeOffset(offset, steps, limit) {
@@ -222,9 +218,9 @@ class Bets {
 
         this.reset();
 
-        this.offset = offset > 0 ? offset : 0;
-        this.limit = limit > 0 ? limit : 4;
-        this.steps = steps > 0 ? steps : 0;
+        this.offset = offset > 0 ? offset : 24;
+        this.limit = limit > 0 ? limit : 24;
+        this.steps = steps > 0 ? steps : 24;
 
         this.recalc();
     }
@@ -262,76 +258,80 @@ class Bets {
         return list.map(([n, count]) => [n, count - 1]).filter(([, count]) => count > 0);
     }
 
-    getFrequentNumber(seqId, offset, steps, distance = 36, startFrom = 0, endFrom = 0) {
-        const [items = []] = getNumbers(distance + 1);
-
+    getFrequentNumber(offset, count = 24) {
+        const [items = []] = getNumbers(offset + 1);
         const [first, ...next] = items;
 
         if (!first || !next || !next.length) {
             return;
         }
 
-        let count;
+        const compared = next.find((item) => item.number === first.number);
 
-        for (let i = 0; i < next.length; i++) {
-            if (next[i].number === first.number) {
-                let currentSteps = steps || (37 - (i + 1));
-                if (startFrom > 0 && endFrom > startFrom) {
-                    if (i < startFrom || i >= endFrom) {
-                        break;
-                    }
-                    currentSteps = steps || 24;
-                }
-                count = currentSteps;
-                break;
-            }
-        }
-
-        if (offset < 1) {
-            if (!count) {
-                return;
-            }
-
+        if (compared) {
             return [first.number, count];
-        }
-
-        if (!this.queue.has(seqId)) {
-            this.queue.set(seqId, []);
-        }
-
-        let queue = this.queue.get(seqId)
-            .filter(([n]) => n !== first.number)
-            .map(([n, ofs, count]) => [n, ofs - 1, count]);
-
-        const current = queue.find(([,ofs]) => ofs === 0);
-
-        if (current) {
-            queue = queue.filter(([n]) => n !== current[0]);
-        }
-
-        if (count) {
-            queue.push([first.number, offset, count]);
-        }
-
-        this.queue.set(seqId, queue);
-
-        if (current) {
-            return [current[0], current[2]];
         }
     }
 
-    getLateNumber(offset, steps) {
-        const distance = offset;
+    getLateNumber(offset, count = 24) {
         const first = currentGame.numbers[0];
 
         const numberOffset = getLastOffset() || (this.count - 1);
 
-        if (numberOffset > distance) {
-            return [first, steps || 24];
+        if (numberOffset >= offset) {
+            return [first, count];
         }
     }
 
-    updateSelectedNumbers(n) {
+    getFirstFailedNumber(offset,  count = 24) {
+        if (currentGame.numbers.length < offset + 1) {
+            return;
+        }
+
+        const numbers = currentGame.numbers.slice(0, offset);
+
+        for (let n of currentGame.numbers) {
+            if (!numbers.includes(n)) {
+                return [n, count];
+            }
+        }
+    }
+
+    getLastFailedNumber(offset, count = 24) {
+        if (currentGame.numbers.length <= offset - 1) {
+            return;
+        }
+
+        const orders = {};
+
+        currentGame.numbers.forEach((n, i) => {
+           const [first, second] = orders[n] || [];
+           if (!first) {
+               orders[n] = [currentGame.numbers.length - i];
+           } else if (!second) {
+               orders[n].push(first - (currentGame.numbers.length - i));
+           }
+        });
+
+        let number;
+        let max = 0;
+
+        Object.entries(orders).forEach(([n, pos]) => {
+            const [first, second] = pos;
+            const min = second ? Math.min(first, second) : first;
+
+            if (min > max) {
+                max = min;
+                number = Number(n);
+            }
+        });
+
+        if (number) {
+            return [number, count];
+        }
+    }
+
+    updateSelectedNumbers(n, prev) {
         let mix = this.useMix ? [...this.mix.entries()] : [
             [0, [this.mode, this.offset, this.steps, this.limit, this.checkOnce]]
         ];
@@ -347,39 +347,13 @@ class Bets {
             }
 
             if (mode === 1) {
-                next = this.getFrequentNumber(id, offset, steps);
+                next = this.getFrequentNumber(offset, steps);
             } else if (mode === 2) {
                 next = this.getLateNumber(offset, steps);
-            } else if (mode === 10) {
-                next = this.getFrequentNumber(id, offset, steps, 13);
-            } else if (mode === 11) {
-                next = this.getFrequentNumber(id, offset, steps, 25, 13, 25);
-            } else if (mode === 12) {
-                next = this.getFrequentNumber(id, offset, steps, 37, 25, 37);
-            } else if (mode === 13) {
-                next = this.getFrequentNumber(id, offset, steps, 54, 37, 54);
-            } else if (mode === 14) {
-                next = this.getFrequentNumber(id, offset, steps, 72, 54, 72);
-            } else if (mode === 15) {
-                next = this.getFrequentNumber(id, offset, steps, 108, 72, 108);
-            } else if (mode === 16) {
-                next = this.getFrequentNumber(id, offset, steps, 999, 108, 999);
-            } else if (mode === 20) {
-                next = this.getFrequentNumber(id, offset, steps, 25);
-            } else if (mode === 21) {
-                next = this.getFrequentNumber(id, offset, steps, 54, 25, 54);
-            } else if (mode === 22) {
-                next = this.getFrequentNumber(id, offset, steps, 108, 54, 108);
-            } else if (mode === 30) {
-                next = this.getFrequentNumber(id, offset, steps, 999, 37, 999);
-            } else if (mode === 31) {
-                next = this.getFrequentNumber(id, offset, steps, 999, 54, 999);
-            } else if (mode === 32) {
-                next = this.getFrequentNumber(id, offset, steps, 999, 72, 999);
-            } else if (mode === 33) {
-                next = this.getFrequentNumber(id, offset, steps, 999, 108, 999);
-            } else if (mode === 40) {
-                next = this.getFrequentNumber(id, offset, steps, 999);
+            } else if (mode === 3) {
+                next = this.getFirstFailedNumber(offset, steps);
+            } else if (mode === 4) {
+                next = this.getLastFailedNumber(offset, steps);
             }
 
             if (next) {
@@ -389,19 +363,25 @@ class Bets {
             }
 
             lastSelected = lastSelected.slice(0, limit);
-            console.log('LAST', lastSelected);
-
             this.lastSelected.set(id, lastSelected);
         });
 
         const lastRecommended = [];
 
-        this.lastSelected.forEach((items) => {
+        for (let [id, items] of this.lastSelected.entries()) {
             const list = items.map(([n]) => n);
             list.sort((a, b) => a - b);
 
-            lastRecommended.push(list);
-        });
+            lastRecommended.push([...list]);
+
+            const diff = (prev.get(id) || []).map(([n]) => n);
+
+            const added = list.filter((n) => !diff.includes(n));
+            const deleted = diff.filter((n) => !list.includes(n));
+
+            lastRecommended.push(['add', ...added]);
+            lastRecommended.push(['del', ...deleted]);
+        }
 
         this.lastRecommended = lastRecommended;
 
@@ -419,11 +399,14 @@ class Bets {
 
         this.changeResult(n);
 
+        const prev = new Map();
+
         [...this.lastSelected.entries()].forEach(([id, list]) => {
+            prev.set(id, list);
             this.lastSelected.set(id, this.updateBets(list))
         });
 
-        this.updateSelectedNumbers(n);
+        this.updateSelectedNumbers(n, prev);
     }
 
     startMix() {
