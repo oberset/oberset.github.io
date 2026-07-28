@@ -150,12 +150,12 @@ class Bets {
         this.isPositive = undefined;
         this.lastSelected = new Map();
         this.lastRecommended = [];
-        this.offset = 24;
-        this.limit = 24;
+        this.offset = undefined;
+        this.limit = 37;
         this.lastBalance = 0;
         this.skip = 0;
         this.count = 0;
-        this.steps = 24;
+        this.steps = undefined;
         this.mode = Bets.MODES[0];
         this.mix = new Map();
         this.useMix = false;
@@ -218,9 +218,9 @@ class Bets {
 
         this.reset();
 
-        this.offset = offset > 0 ? offset : 24;
-        this.limit = limit > 0 ? limit : 24;
-        this.steps = steps > 0 ? steps : 24;
+        this.offset = offset > 0 ? offset : undefined;
+        this.limit = limit > 0 ? limit : 37;
+        this.steps = steps > 0 ? steps : undefined;
 
         this.recalc();
     }
@@ -258,7 +258,7 @@ class Bets {
         return list.map(([n, count]) => [n, count - 1]).filter(([, count]) => count > 0);
     }
 
-    getFrequentNumber(offset, count = 24) {
+    getFrequentNumber(offset = 18, count = 18) {
         const [items = []] = getNumbers(offset + 1);
         const [first, ...next] = items;
 
@@ -273,7 +273,7 @@ class Bets {
         }
     }
 
-    getLateNumber(offset, count = 24) {
+    getLateNumber(offset = 1, count = 18) {
         const first = currentGame.numbers[0];
 
         const numberOffset = getLastOffset() || (this.count - 1);
@@ -283,8 +283,8 @@ class Bets {
         }
     }
 
-    getFirstFailedNumber(offset,  count = 24) {
-        if (currentGame.numbers.length < offset + 1) {
+    getFirstFailedNumber(offset = 18,  count = 18) {
+        if (currentGame.numbers.length <= offset) {
             return;
         }
 
@@ -297,8 +297,8 @@ class Bets {
         }
     }
 
-    getLastFailedNumber(offset, count = 24) {
-        if (currentGame.numbers.length <= offset - 1) {
+    getLastFailedNumber(offset = 0, count = 18) {
+        if (currentGame.numbers.length <= offset) {
             return;
         }
 
