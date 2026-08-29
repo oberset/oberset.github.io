@@ -143,7 +143,7 @@ function lastNumbersStrategy() {
         }
     }
 
-    showRecommended(lineStructure, service, Bets.SETS, addNewNumbers);
+    showRecommended(lineStructure, service, Bets.SETS, [], addNewNumbers);
 
     const button = document.querySelector('.start-game');
     const buttonEventListener = () => {
@@ -194,8 +194,9 @@ function lastNumbersStrategy() {
 
     addEventListener('change_recommended', () => {
         const recommended = service.lastRecommended;
+        const actions = service.lastActions;
 
-        showRecommended(lineStructure, service, Bets.SETS.concat(recommended), addNewNumbers);
+        showRecommended(lineStructure, service, Bets.SETS.concat(recommended), actions, addNewNumbers);
     })
 
     addEventListener('add_number', () => {
@@ -413,7 +414,7 @@ function calcLastNumbers(lineStructure, service) {
     service.next(current);
 }
 
-function showRecommended(lineStructure, service, recommended, onChange) {
+function showRecommended(lineStructure, service, recommended, actions, onChange) {
     const group = lineStructure.getFirstItemsGroupElement();
     const items = lineStructure.getItemsElement(group);
     const template = lineStructure.getFirstItemElement(items);
@@ -422,8 +423,9 @@ function showRecommended(lineStructure, service, recommended, onChange) {
 
     const elements = [];
     const selected = service.bets.join(' ');
+    const lines = recommended.concat(actions);
 
-    for (let set of recommended) {
+    for (let set of lines) {
         const text = set.join(' ');
         const element = createItem(template, text);
 
