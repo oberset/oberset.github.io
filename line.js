@@ -133,8 +133,10 @@ class Bets {
     ];
 
     static MODES = [
-        1, 2, 3, 4
+        1, 2, 3, 4, 5
     ];
+
+    static LIMIT = 18;
 
     constructor() {
         this.orders = new Map();
@@ -151,7 +153,7 @@ class Bets {
         this.lastSelected = new Map();
         this.lastRecommended = [];
         this.offset = undefined;
-        this.limit = 37;
+        this.limit = Bets.LIMIT;
         this.lastBalance = 0;
         this.skip = 0;
         this.count = 0;
@@ -161,6 +163,7 @@ class Bets {
         this.useMix = false;
         this.checkOnce = false;
         this.lastFailed = [];
+        this.lastActions = [];
 
         addEventListener('delete_number', () => {
             this.reset();
@@ -195,6 +198,7 @@ class Bets {
         this.lastBalance = 0;
         this.count = 0;
         this.lastFailed = [];
+        this.lastActions = [];
         console.log('clear');
     }
 
@@ -209,6 +213,7 @@ class Bets {
         this.isPositive = undefined;
         this.count = 0;
         this.lastFailed = [];
+        this.lastActions = [];
     }
 
     changeOffset(offset, steps, limit) {
@@ -219,7 +224,7 @@ class Bets {
         this.reset();
 
         this.offset = offset > 0 ? offset : undefined;
-        this.limit = limit > 0 ? limit : 37;
+        this.limit = limit > 0 ? limit : Bets.LIMIT;
         this.steps = steps > 0 ? steps : undefined;
 
         this.recalc();
@@ -297,6 +302,60 @@ class Bets {
         }
     }
 
+    getHotNumber(offset = 37, count = 18) {
+        const orders = [];
+        const numbers = NUMBERS.map((info) => info.number);
+        const sections = getNumbers(offset).map((section) => section.map((info) => info.number));
+
+        for (let section of sections) {
+            const sectionOrders = {};
+
+            for (let current of section) {
+                sectionOrders[current] = sectionOrders[current] ? sectionOrders[current] + 1 : 1;
+            }
+
+            orders.push(sectionOrders);
+        }
+
+        const totalSum = orders.reduce((list, section) => {
+            for (let number of numbers) {
+                if (!section[number]) {
+                    list[number] = list[number] !== undefined ? list[number] - 1 : -1;
+                } else {
+                    list[number] = list[number] !== undefined ? list[number] + section[number] : section[number];
+                }
+            }
+
+            return list;
+        }, {});
+
+        const orderedList = {};
+
+        currentGame.numbers.forEach((n, i) => {
+            if (orderedList[n] === undefined) {
+                orderedList[n] = [i, totalSum[n]];
+            }
+        });
+
+        const sortedList = Object.entries(orderedList);
+
+        sortedList.sort((a, b) => {
+            const [, sortsA] = a;
+            const [, sortsB] = b;
+
+            const [orderA, sumA] = sortsA;
+            const [orderB, sumB] = sortsB;
+
+            if (sumA === sumB) {
+                return orderA - orderB;
+            }
+
+            return sumB - sumA;
+        });
+
+        return sortedList.map(([n]) => [Number(n), count]);
+    }
+
     getLastFailedNumber(offset = 0, count = 18) {
         if (currentGame.numbers.length <= offset) {
             return;
@@ -305,12 +364,12 @@ class Bets {
         const orders = {};
 
         currentGame.numbers.forEach((n, i) => {
-           const [first, second] = orders[n] || [];
-           if (!first) {
-               orders[n] = [currentGame.numbers.length - i];
-           } else if (!second) {
-               orders[n].push(first - (currentGame.numbers.length - i));
-           }
+            const [first, second] = orders[n] || [];
+            if (!first) {
+                orders[n] = [currentGame.numbers.length - i];
+            } else if (!second) {
+                orders[n].push(first - (currentGame.numbers.length - i));
+            }
         });
 
         let number;
@@ -331,10 +390,14 @@ class Bets {
         }
     }
 
-    updateSelectedNumbers(n, prev) {
-        let mix = this.useMix ? [...this.mix.entries()] : [
+    getMix() {
+        return this.useMix ? [...this.mix.entries()] : [
             [0, [this.mode, this.offset, this.steps, this.limit, this.checkOnce]]
         ];
+    }
+
+    updateSelectedNumbers(n, prev) {
+        let mix = this.getMix();
 
         mix.forEach(([id, item]) => {
             let next;
@@ -354,6 +417,8 @@ class Bets {
                 next = this.getFirstFailedNumber(offset, steps);
             } else if (mode === 4) {
                 next = this.getLastFailedNumber(offset, steps);
+            } else if (mode === 5) {
+                lastSelected = this.getHotNumber(offset, steps);
             }
 
             if (next) {
@@ -363,10 +428,12 @@ class Bets {
             }
 
             lastSelected = lastSelected.slice(0, limit);
+            //console.log('lastSelected', lastSelected.map(([n]) => n).join(' '));
             this.lastSelected.set(id, lastSelected);
         });
 
         const lastRecommended = [];
+        this.lastActions = [];
 
         for (let [id, items] of this.lastSelected.entries()) {
             const list = items.map(([n]) => n);
@@ -379,8 +446,8 @@ class Bets {
             const added = list.filter((n) => !diff.includes(n));
             const deleted = diff.filter((n) => !list.includes(n));
 
-            lastRecommended.push(['add', ...added]);
-            lastRecommended.push(['del', ...deleted]);
+            this.lastActions.push(['add', ...added]);
+            this.lastActions.push(['del', ...deleted]);
         }
 
         this.lastRecommended = lastRecommended;
