@@ -129,14 +129,108 @@ class SelectedNumbers {
 
 class Bets {
     static SETS = [
-        [Infinity]
+        [Infinity],
+        /*[0,32],
+        [32,15],
+        [15,19],
+        [19,4],
+        [4,21],
+        [21,2],
+        [2,25],
+        [25,17],
+        [17,34],
+        [34,6],
+        [6,27],
+        [27,13],
+        [13,36],
+        [36,11],
+        [11,30],
+        [30,8],
+        [8,23],
+        [23,10],
+        [10,5],
+        [5,24],
+        [24,16],
+        [16,33],
+        [33,1],
+        [1,20],
+        [20,14],
+        [14,31],
+        [31,9],
+        [9,22],
+        [22,18],
+        [18,29],
+        [29,7],
+        [7,28],
+        [28,12],
+        [12,35],
+        [35,3],
+        [3,26],
+        [26,0]*/
+
+        /*[0,32,15],
+        [32,15,19],
+        [15,19,4],
+        [19,4,21],
+        [4,21,2],
+        [21,2,25],
+        [2,25,17],
+        [25,17,34],
+        [17,34,6],
+        [34,6,27],
+        [6,27,13],
+        [27,13,36],
+        [13,36,11],
+        [36,11,30],
+        [11,30,8],
+        [30,8,23],
+        [8,23,10],
+        [23,10,5],
+        [10,5,24],
+        [5,24,16],
+        [24,16,33],
+        [16,33,1],
+        [33,1,20],
+        [1,20,14],
+        [20,14,31],
+        [14,31,9],
+        [31,9,22],
+        [9,22,18],
+        [22,18,29],
+        [18,29,7],
+        [29,7,28],
+        [7,28,12],
+        [28,12,35],
+        [12,35,3],
+        [35,3,26],
+        [3,26,0],
+        [26,0,32]*/
+
+        /*[32,15],
+        [19,4],
+        [21,2],
+        [25,17],
+        [34,6],
+        [27,13],
+        [36,11],
+        [30,8],
+        [23,10],
+        [5,24],
+        [16,33],
+        [1,20],
+        [14,31],
+        [9,22],
+        [18,29],
+        [7,28],
+        [12,35],
+        [3,26],*/
     ];
 
     static MODES = [
-        1, 2, 3, 4, 5
+        1, 2, 3, 4, 5, 6, 7
     ];
 
-    static LIMIT = 18;
+    static LIMIT = 1;
 
     constructor() {
         this.orders = new Map();
@@ -147,7 +241,7 @@ class Bets {
         this.bets = Bets.SETS[0];
         this.absoluteBalance = 0;
         this.lastRecommendedBalance = 0;
-        this.depth = 750;
+        this.depth = 500;
         this.winHappened = false;
         this.isPositive = undefined;
         this.lastSelected = new Map();
@@ -264,6 +358,10 @@ class Bets {
     }
 
     getFrequentNumber(offset = 18, count = 18) {
+        if (currentGame.numbers.length > 125) {
+            return;
+        }
+
         const [items = []] = getNumbers(offset + 1);
         const [first, ...next] = items;
 
@@ -278,13 +376,19 @@ class Bets {
         }
     }
 
-    getLateNumber(offset = 1, count = 18) {
+    getLateNumber(offset = 1, count = 18, limit = 0) {
+        if (currentGame.numbers.length > 125) {
+            return;
+        }
+
         const first = currentGame.numbers[0];
 
         const numberOffset = getLastOffset() || (this.count - 1);
 
         if (numberOffset >= offset) {
-            return [first, count];
+            if (!limit || numberOffset <= offset + limit) {
+                return [first, count];
+            }
         }
     }
 
@@ -302,16 +406,16 @@ class Bets {
         }
     }
 
-    getHotNumber(offset = 37, count = 18) {
+    getHotNumbers(offset = 0, invert = false) {
         const orders = [];
         const numbers = NUMBERS.map((info) => info.number);
-        const sections = getNumbers(offset).map((section) => section.map((info) => info.number));
+        const sections = getNumbers(37).map((section) => section.map((info) => info.number));
 
         for (let section of sections) {
             const sectionOrders = {};
 
             for (let current of section) {
-                sectionOrders[current] = sectionOrders[current] ? sectionOrders[current] + 1 : 1;
+                sectionOrders[current] = sectionOrders[current] ? sectionOrders[current] + offset : offset;
             }
 
             orders.push(sectionOrders);
@@ -320,7 +424,7 @@ class Bets {
         const totalSum = orders.reduce((list, section) => {
             for (let number of numbers) {
                 if (!section[number]) {
-                    list[number] = list[number] !== undefined ? list[number] - 1 : -1;
+                    list[number] = list[number] !== undefined ? list[number] - offset : -(offset) || 0;
                 } else {
                     list[number] = list[number] !== undefined ? list[number] + section[number] : section[number];
                 }
@@ -337,7 +441,7 @@ class Bets {
             }
         });
 
-        const sortedList = Object.entries(orderedList);
+        const sortedList = Object.entries(orderedList).map(([n, rank]) => [Number(n), rank]);
 
         sortedList.sort((a, b) => {
             const [, sortsA] = a;
@@ -347,13 +451,13 @@ class Bets {
             const [orderB, sumB] = sortsB;
 
             if (sumA === sumB) {
-                return orderA - orderB;
+                return invert ? orderB - orderA : orderA - orderB;
             }
 
-            return sumB - sumA;
+            return invert ? sumA - sumB : sumB - sumA;
         });
 
-        return sortedList.map(([n]) => [Number(n), count]);
+        return sortedList;
     }
 
     getLastFailedNumber(offset = 0, count = 18) {
@@ -390,6 +494,44 @@ class Bets {
         }
     }
 
+    getLateNumberNeighbours(offset = 0, count = 18, limit = 1) {
+        const negative = this.getHotNumbers(offset, true);
+        const positive = this.getHotNumbers(offset);
+
+        const compareRank = Math.round(positive.length * 1.25);
+
+        const result = [];
+
+        for (let i = 0; i < negative.length; i++) {
+            const current = negative[i][0];
+
+            const info = getNumberInfo(current);
+            let [nLeft, nRight] = info.neighbors_1;
+
+            const nLeftIndex = positive.findIndex(([n]) => n === nLeft);
+            const nRightIndex = positive.findIndex(([n]) => n === nRight);
+
+            const indexRank = Math.round(
+                ((nLeftIndex > -1 ? nLeftIndex + 1 : positive.length) + (nRightIndex > -1 ? nRightIndex + 1 : positive.length)) / 2
+            );
+
+            if ((indexRank + indexRank) > compareRank) {
+                continue;
+            }
+
+            result.push(...[
+                [nLeft, count],
+                [nRight, count]
+            ]);
+
+            if (result.length >= (limit * 2)) {
+                break;
+            }
+        }
+
+        return result;
+    }
+
     getMix() {
         return this.useMix ? [...this.mix.entries()] : [
             [0, [this.mode, this.offset, this.steps, this.limit, this.checkOnce]]
@@ -409,6 +551,8 @@ class Bets {
                 lastSelected = lastSelected.filter(([item]) => item !== n);
             }
 
+            let limitFactor = 1;
+
             if (mode === 1) {
                 next = this.getFrequentNumber(offset, steps);
             } else if (mode === 2) {
@@ -418,7 +562,16 @@ class Bets {
             } else if (mode === 4) {
                 next = this.getLastFailedNumber(offset, steps);
             } else if (mode === 5) {
-                lastSelected = this.getHotNumber(offset, steps);
+                lastSelected = this.getHotNumbers(offset).map(([n]) => [n, steps]);
+            } else if (mode === 6) {
+                lastSelected = this.getHotNumbers(offset, true).map(([n]) => [n, steps]);
+            } else if (mode === 7) {
+                const prev = lastSelected;
+                lastSelected = this.getLateNumberNeighbours(offset, steps, limit);
+                if (!lastSelected.length) {
+                    lastSelected = prev;
+                }
+                limitFactor = 2;
             }
 
             if (next) {
@@ -427,7 +580,7 @@ class Bets {
                 lastSelected.unshift(next);
             }
 
-            lastSelected = lastSelected.slice(0, limit);
+            lastSelected = lastSelected.slice(0, limit * limitFactor);
             //console.log('lastSelected', lastSelected.map(([n]) => n).join(' '));
             this.lastSelected.set(id, lastSelected);
         });
