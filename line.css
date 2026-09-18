@@ -1,6 +1,6 @@
 .red {
-    background-color: #ff7c00;
-    color: #232323;
+    background-color: #477fbb;  /*#ff7c00;*/
+    color: rgba(220, 220, 220, 1);
 }
 
 .black {
